@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PathFinder GIS Engine - Bangladesh Jela & District Documentation</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+            @bottom-right {
+                content: counter(page);
+            }
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #1e293b;
+            line-height: 1.5;
+            font-size: 11pt;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        h1, h2, h3, h4 {
+            color: #0f172a;
+            page-break-after: avoid;
+        }
+        h1 { font-size: 22pt; margin-top: 0; border-bottom: 3px solid #10b981; padding-bottom: 8px; }
+        h2 { font-size: 15pt; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 5px; margin-top: 24pt; color: #006a4e; }
+        h3 { font-size: 12pt; margin-top: 14pt; color: #0284c7; }
+        .page-break { page-break-before: always; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12pt 0;
+            font-size: 9.5pt;
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 6pt 8pt;
+            text-align: left;
+        }
+        th {
+            background-color: #f1f5f9;
+            font-weight: bold;
+            color: #334155;
+        }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        .badge {
+            display: inline-block;
+            padding: 2pt 6pt;
+            border-radius: 4pt;
+            font-size: 8pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .badge-blue { background: #e0f2fe; color: #0369a1; }
+        .badge-amber { background: #fef3c7; color: #92400e; }
+        .badge-purple { background: #f3e8ff; color: #6b21a8; }
+        .badge-rose { background: #ffe4e6; color: #9f1239; }
+        .screenshot-card {
+            border: 1px solid #cbd5e1;
+            border-radius: 6pt;
+            padding: 10pt;
+            margin: 14pt 0;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            page-break-inside: avoid;
+        }
+        .screenshot-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 4pt;
+            border: 1px solid #e2e8f0;
+            display: block;
+        }
+        .screenshot-caption {
+            font-size: 9pt;
+            color: #475569;
+            margin-top: 6pt;
+            font-weight: 500;
+        }
+        .code-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 3px solid #0284c7;
+            padding: 8pt 10pt;
+            font-family: Consolas, monospace;
+            font-size: 8.5pt;
+            margin: 8pt 0;
+            border-radius: 3pt;
+        }
+        .cover-page {
+            text-align: center;
+            padding-top: 4cm;
+            page-break-after: always;
+        }
+        .cover-title {
+            font-size: 26pt;
+            font-weight: 800;
+            color: #006a4e;
+            margin-bottom: 10pt;
+        }
+        .cover-subtitle {
+            font-size: 14pt;
+            color: #475569;
+            margin-bottom: 25pt;
+        }
+        .cover-meta {
+            font-size: 10.5pt;
+            color: #64748b;
+            margin-top: 5cm;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cover Page -->
+    <div class="cover-page">
+        <div style="font-size: 36pt; margin-bottom: 15pt;">🇧🇩 🗺️ ⚡</div>
+        <div class="cover-title">PathFinder GIS Engine</div>
+        <div class="cover-subtitle">Bangladesh Jela & District Graph Routing<br>BFS &bull; DFS &bull; Dijkstra &bull; A* Heuristic Analysis</div>
+        
+        <div style="margin: 20pt auto; display: inline-block;">
+            <span class="badge badge-green" style="font-size: 10pt; padding: 4pt 10pt;">Django 6.1 Backend</span>
+            <span class="badge badge-blue" style="font-size: 10pt; padding: 4pt 10pt; margin: 0 4pt;">Google Maps JS API</span>
+            <span class="badge badge-amber" style="font-size: 10pt; padding: 4pt 10pt;">32 Bangladesh Jelas</span>
+        </div>
+
+        <div class="cover-meta">
+            <strong>System:</strong> Full-Stack GIS Spatial Navigation Engine<br>
+            <strong>Mapping Service:</strong> Google Maps JavaScript API (Live Key Configured)<br>
+            <strong>Author / Developer:</strong> Antigravity Autonomous Engineering<br>
+            <strong>Environment:</strong> Python 3.12 &bull; Django 6.1.3 &bull; SQLite3<br>
+            <strong>Date:</strong> November 2026
+        </div>
+    </div>
+
+    <!-- Section 1: Executive Summary -->
+    <h2>1. Executive Summary & Project Objectives</h2>
+    <p>
+        The <strong>PathFinder GIS Engine</strong> is a full-stack geographic routing application built to compute, visualize, animate, and benchmark four fundamental graph pathfinding algorithms:
+        <strong>BFS (Breadth-First Search)</strong>, <strong>DFS (Depth-First Search)</strong>, <strong>Dijkstra’s Algorithm</strong>, and <strong>A* (A-Star) Search</strong>.
+    </p>
+    <p>
+        The spatial network directly models the sovereign territory of <strong>Bangladesh</strong>, connecting <strong>32 administrative district headquarters (Jelas)</strong> across all 8 divisions (*Dhaka, Chattogram, Sylhet, Rajshahi, Rangpur, Khulna, Barishal, Mymensingh*), with great-circle road distances calculated using the Haversine formula across national highways (N1, N2, N3, N5, N6, N7, N8, and the Padma Bridge corridor).
+    </p>
+
+    <h3>Objectives & Deliverables Checklist</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Requirement</th>
+                <th>Status</th>
+                <th>Technical Implementation Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Part A: Django Setup</strong></td>
+                <td><span class="badge badge-green">Completed</span></td>
+                <td>Configured Django 6 project with SQLite models (`Node` and `Edge`) with admin integration.</td>
+            </tr>
+            <tr>
+                <td><strong>Part A: Google Maps JS API</strong></td>
+                <td><span class="badge badge-green">Completed</span></td>
+                <td>Integrated Google Maps JS API with dark/light custom styles, live API key, and vector SVG fallback.</td>
+            </tr>
+            <tr>
+                <td><strong>Part A: Select Source & Destination</strong></td>
+                <td><span class="badge badge-green">Completed</span></td>
+                <td>Interactive selection via dropdowns, Division filter, and clicking pins directly on the map.</td>
+            </tr>
+            <tr>
+                <td><strong>Part B: Graph Representation</strong></td>
+                <td><span class="badge badge-green">Completed</span></td>
+                <td>32 Bangladesh Jela nodes with 36 highway segments + 16 Dhaka Metro landmark nodes.</td>
+            </tr>
+            <tr>
+                <td><strong>Part B: Implement Algorithms</strong></td>
+                <td><span class="badge badge-green">Completed</span></td>
+                <td>Implemented all 4 algorithms: BFS, DFS, Dijkstra, and A* in pure Python (`algorithms.py`).</td>
+            </tr>
+            <tr>
+                <td><strong>Part B: Display Path on Map</strong></td>
+                <td><span class="badge badge-green">Completed</span></td>
+                <td>Renders dynamic `google.maps.Polyline` along shortest path with turn-by-turn itinerary table.</td>
+            </tr>
+            <tr>
+                <td><strong>Part C: Dropdown Algorithm Selection</strong></td>
+                <td><span class="badge badge-green">Completed</span></td>
+                <td>Allows selecting any individual algorithm or running the full 4-way comparison.</td>
+            </tr>
+            <tr>
+                <td><strong>Part C: Performance Comparison</strong></td>
+                <td><span class="badge badge-green">Completed</span></td>
+                <td>Side-by-side benchmark table comparing distance (km), hops, nodes visited, latency (ms), and bars.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Section 2: Algorithmic Foundations -->
+    <div class="page-break"></div>
+    <h2>2. Algorithmic Foundations & Mathematical Analysis</h2>
+
+    <h3>A. Breadth-First Search (BFS)</h3>
+    <p>
+        <strong>Concept:</strong> An unweighted search algorithm exploring the graph level by level using a FIFO queue. BFS guarantees finding the path with the <strong>minimum number of road segments (hops)</strong>.
+    </p>
+    <p>
+        <strong>Mathematical Properties:</strong> Time Complexity: $\mathcal{O}(V + E)$, Space Complexity: $\mathcal{O}(V)$. On weighted road networks, BFS does not evaluate kilometer distances, which can lead to longer total distance paths if long road segments are chosen.
+    </p>
+
+    <h3>B. Depth-First Search (DFS)</h3>
+    <p>
+        <strong>Concept:</strong> Explores deeply along each branch using a LIFO stack before backtracking.
+    </p>
+    <p>
+        <strong>Pedagogical Purpose:</strong> Demonstrates why DFS is <strong>unsuitable for shortest-path routing</strong>. Between Dhaka and Chattogram, DFS takes a massive detour through 20 hops and 1,329.6 km (+1,097.4 km excess detour) because it commits to deep paths without evaluating road proximity or goal direction.
+    </p>
+
+    <h3>C. Dijkstra’s Shortest Path Algorithm</h3>
+    <p>
+        <strong>Concept:</strong> A uniform-cost search using a min-heap priority queue ordered by cumulative path distance $g(n)$.
+    </p>
+    <p>
+        <strong>Mathematical Guarantee:</strong> Guarantees the <strong>exact global minimum distance</strong> on non-negative weighted graphs. It expands radially in concentric circles outward from the origin, exploring 29 of 32 nodes.
+    </p>
+
+    <h3>D. A* (A-Star) Search Algorithm & Haversine Heuristic</h3>
+    <p>
+        <strong>Concept:</strong> An informed search algorithm evaluating nodes by $f(n) = g(n) + h(n)$, where $g(n)$ is actual distance from origin and $h(n)$ is the straight-line Haversine distance to destination.
+    </p>
+    <p>
+        <strong>Admissibility Proof:</strong> Because straight-line distance is physically the absolute shortest distance between two geographic coordinates on Earth, $h(n) \le d^*(n)$ always holds true. Thus, A* is guaranteed to find the identical global minimum distance as Dijkstra ($232.2\text{ km}$), while exploring only <strong>7 nodes</strong> (a <strong>75.8% search reduction</strong>).
+    </p>
+
+    <h3>Empirical Benchmark Table (Dhaka ➔ Chattogram)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Algorithm</th>
+                <th>Shortest Distance</th>
+                <th>Segment Hops</th>
+                <th>Nodes Explored</th>
+                <th>Latency (ms)</th>
+                <th>Optimality Verdict</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>A* Search</strong></td>
+                <td><strong>232.207 km</strong></td>
+                <td>4 hops</td>
+                <td><strong>7 nodes</strong></td>
+                <td><strong>0.34 ms</strong></td>
+                <td><span class="badge badge-green">Global Optimum (Fastest & Pruned)</span></td>
+            </tr>
+            <tr>
+                <td><strong>Dijkstra</strong></td>
+                <td><strong>232.207 km</strong></td>
+                <td>4 hops</td>
+                <td>29 nodes</td>
+                <td>0.58 ms</td>
+                <td><span class="badge badge-blue">Global Optimum (Exhaustive Search)</span></td>
+            </tr>
+            <tr>
+                <td><strong>BFS</strong></td>
+                <td><strong>232.207 km</strong></td>
+                <td><strong>4 hops</strong></td>
+                <td>30 nodes</td>
+                <td>0.22 ms</td>
+                <td><span class="badge badge-purple">Minimum Segment Hops</span></td>
+            </tr>
+            <tr>
+                <td><strong>DFS</strong></td>
+                <td>1,329.65 km</td>
+                <td>20 hops</td>
+                <td>26 nodes</td>
+                <td>0.19 ms</td>
+                <td><span class="badge badge-rose">Suboptimal Detour (+1,097 km)</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Section 3: Bangladesh Dataset -->
+    <div class="page-break"></div>
+    <h2>3. Bangladesh Spatial Network Dataset (32 Jelas across 8 Divisions)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>District (Jela)</th>
+                <th>Bangla Name</th>
+                <th>Division (বিভাগ)</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>BD_DHK</td><td>Dhaka</td><td>ঢাকা</td><td>Dhaka</td><td>23.8103</td><td>90.4125</td></tr>
+            <tr><td>BD_GZP</td><td>Gazipur</td><td>গাজীপুর</td><td>Dhaka</td><td>24.0023</td><td>90.4264</td></tr>
+            <tr><td>BD_NGJ</td><td>Narayanganj</td><td>নারায়ণগঞ্জ</td><td>Dhaka</td><td>23.6238</td><td>90.5000</td></tr>
+            <tr><td>BD_TNG</td><td>Tangail</td><td>টাঙ্গাইল</td><td>Dhaka</td><td>24.2513</td><td>89.9167</td></tr>
+            <tr><td>BD_FRP</td><td>Faridpur</td><td>ফরিদপুর</td><td>Dhaka</td><td>23.6071</td><td>89.8429</td></tr>
+            <tr><td>BD_NRD</td><td>Narsingdi</td><td>নরসিংদী</td><td>Dhaka</td><td>23.9193</td><td>90.7176</td></tr>
+            <tr><td>BD_MNK</td><td>Manikganj</td><td>মানিকগঞ্জ</td><td>Dhaka</td><td>23.8617</td><td>90.0003</td></tr>
+            <tr><td>BD_GPL</td><td>Gopalganj</td><td>গোপালগঞ্জ</td><td>Dhaka</td><td>23.0051</td><td>89.8266</td></tr>
+            <tr><td>BD_CTG</td><td>Chattogram</td><td>চট্টগ্রাম</td><td>Chattogram</td><td>22.3569</td><td>91.7832</td></tr>
+            <tr><td>BD_CXB</td><td>Cox's Bazar</td><td>কক্সবাজার</td><td>Chattogram</td><td>21.4272</td><td>92.0058</td></tr>
+            <tr><td>BD_COM</td><td>Cumilla</td><td>কুমিল্লা</td><td>Chattogram</td><td>23.4682</td><td>91.1788</td></tr>
+            <tr><td>BD_FEN</td><td>Feni</td><td>ফেনী</td><td>Chattogram</td><td>23.0159</td><td>91.3976</td></tr>
+            <tr><td>BD_BRB</td><td>Brahmanbaria</td><td>ব্রাহ্মণবাড়িয়া</td><td>Chattogram</td><td>23.9608</td><td>91.1115</td></tr>
+            <tr><td>BD_NOA</td><td>Noakhali</td><td>নোয়াখালী</td><td>Chattogram</td><td>22.8696</td><td>91.0993</td></tr>
+            <tr><td>BD_CHP</td><td>Chandpur</td><td>চাঁদপুর</td><td>Chattogram</td><td>23.2333</td><td>90.6667</td></tr>
+            <tr><td>BD_SYL</td><td>Sylhet</td><td>সিলেট</td><td>Sylhet</td><td>24.8949</td><td>91.8687</td></tr>
+            <tr><td>BD_MLB</td><td>Moulvibazar</td><td>মৌলভীবাজার</td><td>Sylhet</td><td>24.4829</td><td>91.7774</td></tr>
+            <tr><td>BD_HBJ</td><td>Habiganj</td><td>হবিগঞ্জ</td><td>Sylhet</td><td>24.3749</td><td>91.4155</td></tr>
+            <tr><td>BD_RAJ</td><td>Rajshahi</td><td>রাজশাহী</td><td>Rajshahi</td><td>24.3745</td><td>88.6042</td></tr>
+            <tr><td>BD_BOG</td><td>Bogura</td><td>বগুড়া</td><td>Rajshahi</td><td>24.8465</td><td>89.3777</td></tr>
+            <tr><td>BD_PAB</td><td>Pabna</td><td>পাবনা</td><td>Rajshahi</td><td>24.0064</td><td>89.2372</td></tr>
+            <tr><td>BD_SRJ</td><td>Sirajganj</td><td>সিরাজগঞ্জ</td><td>Rajshahi</td><td>24.4534</td><td>89.7007</td></tr>
+            <tr><td>BD_NAT</td><td>Natore</td><td>নাটোর</td><td>Rajshahi</td><td>24.4206</td><td>89.0003</td></tr>
+            <tr><td>BD_RNG</td><td>Rangpur</td><td>রংপুর</td><td>Rangpur</td><td>25.7439</td><td>89.2752</td></tr>
+            <tr><td>BD_DNJ</td><td>Dinajpur</td><td>দিনাজপুর</td><td>Rangpur</td><td>25.6217</td><td>88.6354</td></tr>
+            <tr><td>BD_GAI</td><td>Gaibandha</td><td>গাইবান্ধা</td><td>Rangpur</td><td>25.3288</td><td>89.5406</td></tr>
+            <tr><td>BD_KLN</td><td>Khulna</td><td>খুলনা</td><td>Khulna</td><td>22.8456</td><td>89.5403</td></tr>
+            <tr><td>BD_JSH</td><td>Jashore</td><td>যশোর</td><td>Khulna</td><td>23.1664</td><td>89.2081</td></tr>
+            <tr><td>BD_KSH</td><td>Kushtia</td><td>কুষ্টিয়া</td><td>Khulna</td><td>23.9013</td><td>89.1205</td></tr>
+            <tr><td>BD_BAR</td><td>Barishal</td><td>বরিশাল</td><td>Barishal</td><td>22.7010</td><td>90.3535</td></tr>
+            <tr><td>BD_PAT</td><td>Patuakhali</td><td>পটুয়াখালী</td><td>Barishal</td><td>22.3596</td><td>90.3299</td></tr>
+            <tr><td>BD_MYM</td><td>Mymensingh</td><td>ময়মনসিংহ</td><td>Mymensingh</td><td>24.7471</td><td>90.4203</td></tr>
+        </tbody>
+    </table>
+
+    <!-- Section 4: Pointable Object Annotated Screenshots -->
+    <div class="page-break"></div>
+    <h2>4. Visual Walkthrough: Pointable Object Annotated Screenshots</h2>
+    <p>
+        Each screenshot below has been visually annotated with glowing colored bounding boxes, header tabs on the elements, and numbered callouts <strong>[1]</strong>, <strong>[2]</strong>, <strong>[3]</strong>... with a comprehensive demonstration guide explaining every interactive object:
+    </p>
+
+    <!-- Figure 1.1: Main Dashboard -->
+    <div class="screenshot-card">
+        <h3>Point 1: Main GIS Dashboard (Google Maps Live & Interactive Controls)</h3>
+        <img src="file:///C:/Users/suja/map_pathfinder/screenshots/marked_01_dashboard.png" alt="Annotated Dashboard Google Maps">
+        <div class="screenshot-caption">
+            <strong>Figure 1.1 — Annotated Main Dashboard & Google Maps Integration:</strong><br>
+            &bull; <strong>[1] Projector View Toggle:</strong> Switches interface to WCAG AA high-contrast light theme for presentation clarity.<br>
+            &bull; <strong>[2] Spatial Network Switcher:</strong> Instantly toggles between 32 Bangladesh Highway Districts and 16 Dhaka Metro Hubs.<br>
+            &bull; <strong>[3] 1-Click Route Presets:</strong> Pre-configured scenario buttons (Dhaka ➔ Chattogram, Sylhet, Rajshahi) for instant evaluation.<br>
+            &bull; <strong>[4] Division Filter:</strong> Filters district dropdowns by Bangladesh's 8 administrative divisions (বিভাগ).<br>
+            &bull; <strong>[5] Origin District Selector (A):</strong> Sets starting node (Green Pin); select via dropdown or by clicking map markers.<br>
+            &bull; <strong>[6] Destination District Selector (B):</strong> Sets destination node (Red Pin); select via dropdown or by clicking map markers.<br>
+            &bull; <strong>[7] Algorithm Selector:</strong> Supports Dijkstra (uniform-cost), A* (heuristic), BFS (hops), DFS (detour), and Compare All.<br>
+            &bull; <strong>[8] Google Maps Canvas & Pins:</strong> Official Google Maps JavaScript API loaded with user API key and 32 custom district pins.
+        </div>
+    </div>
+
+    <!-- Figure 1.2: A* Search Route -->
+    <div class="page-break"></div>
+    <div class="screenshot-card">
+        <h3>Point 2: A* Search Optimal Route Calculation & Turn-by-Turn Itinerary</h3>
+        <img src="file:///C:/Users/suja/map_pathfinder/screenshots/marked_02_a_star_route.png" alt="Annotated A* Route">
+        <div class="screenshot-caption">
+            <strong>Figure 1.2 — Annotated A* Route & Turn-by-Turn Breakdown:</strong><br>
+            &bull; <strong>[1] Optimal Route Polyline:</strong> Real road coordinates connecting Dhaka ➔ Narayanganj ➔ Cumilla ➔ Feni ➔ Chattogram (232.2 km).<br>
+            &bull; <strong>[2] Execution Performance Metrics:</strong> Displays 232.2 km global minimum distance, 4 hops, 7 nodes explored (24% search space), and 0.34 ms latency.<br>
+            &bull; <strong>[3] District Itinerary Table:</strong> Step-by-step route breakdown showing individual segment distances and cumulative kilometers.
+        </div>
+    </div>
+
+    <!-- Figure 1.3: Part C 4-Way Comparison Matrix -->
+    <div class="page-break"></div>
+    <div class="screenshot-card">
+        <h3>Point 3: Part C 4-Way Algorithm Comparison Matrix & Search Space Bars</h3>
+        <img src="file:///C:/Users/suja/map_pathfinder/screenshots/marked_03_four_way_comparison.png" alt="Annotated Comparison Matrix">
+        <div class="screenshot-caption">
+            <strong>Figure 1.3 — Annotated 4-Way Comparative Benchmark Matrix:</strong><br>
+            &bull; <strong>[1] 4-Way Side-by-Side Comparison Table:</strong> Compares Distance (km), Segment Hops, Nodes Explored, and Latency for BFS, DFS, Dijkstra, and A*.<br>
+            &bull; <strong>[2] Search Space Expansion Bars:</strong> Visually proves A* examined only 7 nodes (75.8% search reduction over Dijkstra’s 29 nodes).<br>
+            &bull; <strong>[3] Algorithmic Insights Banner:</strong> Summarizes why A* achieves optimality with minimal visits, and why DFS creates massive detours.
+        </div>
+    </div>
+
+    <!-- Figure 1.4: DFS Detour Route -->
+    <div class="page-break"></div>
+    <div class="screenshot-card">
+        <h3>Point 4: DFS (Depth-First Search) Suboptimal Detour Route</h3>
+        <img src="file:///C:/Users/suja/map_pathfinder/screenshots/marked_04_dfs_detour.png" alt="Annotated DFS Route">
+        <div class="screenshot-caption">
+            <strong>Figure 1.4 — Annotated DFS Suboptimal Routing Demonstration:</strong><br>
+            &bull; <strong>[1] DFS Deep Traversal Polyline:</strong> Red polyline showing deep recursive detour wandering across northern and western districts.<br>
+            &bull; <strong>[2] Detour Penalty Metrics:</strong> 1,329.6 km total distance (+1,097.4 km detour) and 20 hops, demonstrating DFS unsuitability for road routing.
+        </div>
+    </div>
+
+    <!-- Figure 1.5: Projector View -->
+    <div class="page-break"></div>
+    <div class="screenshot-card">
+        <h3>Point 5: High-Contrast Projector / Classroom Day View</h3>
+        <img src="file:///C:/Users/suja/map_pathfinder/screenshots/marked_05_projector_view.png" alt="Annotated Projector View">
+        <div class="screenshot-caption">
+            <strong>Figure 1.5 — Annotated High-Contrast Projector / Day View:</strong><br>
+            &bull; <strong>[1] Active Theme Toggle:</strong> One-click toggle between Day/Projector mode and Night/Dashboard mode in top navigation.<br>
+            &bull; <strong>[2] WCAG 2.1 AA Compliant Palette:</strong> Clean white background with dark slate typography (>10:1 contrast) preventing projector washout.
+        </div>
+    </div>
+
+    <!-- Figure 1.6: Dhaka Metro Hubs -->
+    <div class="page-break"></div>
+    <div class="screenshot-card">
+        <h3>Point 6: Urban Transit Network — Dhaka Metro Hubs (16 Stations)</h3>
+        <img src="file:///C:/Users/suja/map_pathfinder/screenshots/marked_06_dhaka_metro.png" alt="Annotated Dhaka Metro Network">
+        <div class="screenshot-caption">
+            <strong>Figure 1.6 — Annotated Dhaka Metro Urban Hubs Network:</strong><br>
+            &bull; <strong>[1] Urban Network Active:</strong> Switched to high-density 16-node transit network within Dhaka metropolitan area.<br>
+            &bull; <strong>[2] Metro Stations & Arterial Links:</strong> Includes Uttara, Mirpur, Farmgate, Shahbagh, Motijheel, Gulshan, Banani, and Dhanmondi.
+        </div>
+    </div>
+
+    <!-- Figure 1.7: Django Admin Panel -->
+    <div class="page-break"></div>
+    <div class="screenshot-card">
+        <h3>Point 7: Django Admin Backend for Graph Database Management</h3>
+        <img src="file:///C:/Users/suja/map_pathfinder/screenshots/marked_07_django_admin.png" alt="Annotated Django Admin">
+        <div class="screenshot-caption">
+            <strong>Figure 1.7 — Annotated Django Administrative Backend:</strong><br>
+            &bull; <strong>[1] Django Admin Header:</strong> Built-in secure administrative control panel for managing project database models.<br>
+            &bull; <strong>[2] Search & Division Filters:</strong> Instantly filter nodes by division, region, or search by English / Bangla name.<br>
+            &bull; <strong>[3] Graph Nodes & Edges Table:</strong> Full CRUD interface to add, inspect, edit, or delete Bangladesh districts and road connections.
+        </div>
+    </div>
+
+    <!-- Section 5: Setup Guide -->
+    <div class="page-break"></div>
+    <h2>5. Setup, Installation & Execution Manual</h2>
+
+    <h3>1. Requirements & Prerequisites</h3>
+    <ul>
+        <li>Python 3.10 or higher installed.</li>
+        <li>Microsoft Windows, Linux, or macOS.</li>
+        <li>Active internet connection for Google Maps JavaScript tiles.</li>
+    </ul>
+
+    <h3>2. Step-by-Step Installation Commands</h3>
+    <div class="code-box">
+# Navigate to project directory<br>
+cd C:\Users\suja\map_pathfinder<br><br>
+# Install dependencies<br>
+python -m pip install -r requirements.txt<br><br>
+# Apply database migrations<br>
+python manage.py makemigrations routing<br>
+python manage.py migrate<br><br>
+# Seed Bangladesh Jelas and Dhaka Metro networks<br>
+python manage.py seed_graph<br><br>
+# Run automated test suite<br>
+python manage.py test routing<br><br>
+# Start development server<br>
+python manage.py runserver 127.0.0.1:8000
+    </div>
+
+    <h3>3. Default Credentials</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>URL</th>
+                <th>Username</th>
+                <th>Password</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Web Application</td>
+                <td>http://127.0.0.1:8000/</td>
+                <td>Public Access</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Django Admin Panel</td>
+                <td>http://127.0.0.1:8000/admin/</td>
+                <td>admin</td>
+                <td>admin123</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>4. REST API Endpoint Reference</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Endpoint</th>
+                <th>Method</th>
+                <th>Parameters</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>`/api/graph/`</td>
+                <td>GET</td>
+                <td>`region` (bangladesh/dhaka)</td>
+                <td>Returns complete graph topology (nodes, coordinates, divisions, and highway edges).</td>
+            </tr>
+            <tr>
+                <td>`/api/find-path/`</td>
+                <td>GET / POST</td>
+                <td>`source`, `destination`, `algorithm`, `region`</td>
+                <td>Executes specified algorithm (`bfs`, `dfs`, `dijkstra`, `a_star`) and returns coordinates, distance, and itinerary.</td>
+            </tr>
+            <tr>
+                <td>`/api/compare/`</td>
+                <td>GET / POST</td>
+                <td>`source`, `destination`, `region`</td>
+                <td>Executes all 4 algorithms and returns complete comparative benchmark analytics.</td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>

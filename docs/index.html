@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BengalRoute GIS | Bangladesh Jela & District Graph Routing (BFS, DFS, Dijkstra, A*)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        bdgreen: '#006a4e',
+                        bdred: '#f42a41',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        #map, #svg-fallback-container {
+            height: 100%;
+            min-height: 580px;
+            width: 100%;
+            border-radius: 0.75rem;
+        }
+        .progress-bar-transition {
+            transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.25); opacity: 0.2; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .anim-exploring {
+            animation: pulse-ring 0.9s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+    <!-- Direct File Opening (file://) Informative Banner -->
+    <div id="fileProtocolBanner" class="hidden bg-gradient-to-r from-amber-600 to-amber-700 text-white text-xs px-4 py-2.5 font-medium flex items-center justify-between border-b border-amber-500/50 shadow-md">
+        <div class="flex items-center space-x-2.5">
+            <i class="fa-solid fa-circle-info text-amber-200 text-sm"></i>
+            <span><strong>Notice:</strong> You opened this file directly from disk (<code>file://</code>). Google Maps and embedded 32 Bangladesh Jelas are active. For the full Django backend & Admin database, open <a href="http://127.0.0.1:8000/" target="_blank" class="underline font-bold text-white hover:text-amber-100">http://127.0.0.1:8000/</a> (server is currently running).</span>
+        </div>
+        <button onclick="document.getElementById('fileProtocolBanner').remove()" class="text-white hover:text-amber-200 text-base font-bold ml-4 leading-none">&times;</button>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-800/95 border-b border-slate-700/80 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                    <i class="fa-solid fa-route text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="font-bold text-base sm:text-lg text-white leading-tight">BengalRoute GIS Engine</h1>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">BD Jelas & Districts</span>
+                    </div>
+                    <p class="text-xs text-slate-300">BFS &bull; DFS &bull; Dijkstra &bull; A* Heuristic Routing</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3 text-xs">
+                <!-- Theme Switcher (Day/Projector vs Night/Dashboard) -->
+                <button onclick="toggleTheme()" id="themeToggleBtn" title="Toggle Light/Dark Display" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold transition flex items-center space-x-1.5 border border-slate-600">
+                    <i class="fa-solid fa-sun text-amber-400" id="themeIcon"></i>
+                    <span id="themeLabel" class="hidden sm:inline">Projector View</span>
+                </button>
+
+                <!-- Django Admin Link -->
+                <a href="/admin/" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium transition flex items-center space-x-1.5 border border-slate-600">
+                    <i class="fa-solid fa-database text-slate-400"></i>
+                    <span class="hidden md:inline">Admin DB</span>
+                </a>
+
+                <!-- Google Maps API Key Modal Trigger -->
+                <button onclick="openApiKeyModal()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition flex items-center space-x-1.5 shadow-md shadow-indigo-600/30">
+                    <i class="fa-solid fa-key"></i>
+                    <span id="api-key-btn-text" class="hidden sm:inline">Google Maps Key</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+
+        <!-- Network Selector Banner (Bangladesh Jelas vs. Dhaka Metro) -->
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <span class="h-3.5 w-3.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <div>
+                    <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Active Spatial Network</span>
+                    <h3 class="text-sm font-bold text-white" id="currentNetworkLabel">Bangladesh Jela & District Highway Network (32 Districts)</h3>
+                </div>
+            </div>
+
+            <!-- Network Switcher Tabs -->
+            <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-700">
+                <button onclick="switchNetwork('bangladesh')" id="netBtn-bangladesh" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 bg-emerald-600 text-white shadow">
+                    <span>🇧🇩 Bangladesh Jelas / Districts (32)</span>
+                </button>
+                <button onclick="switchNetwork('dhaka')" id="netBtn-dhaka" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 text-slate-400 hover:text-white">
+                    <span>🏙️ Dhaka Metro Hubs (16)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 1-Click Presentation Demo Presets -->
+        <div class="bg-slate-800/70 border border-slate-700/70 rounded-2xl p-4 shadow-md">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
+                <span class="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center">
+                    <i class="fa-solid fa-bolt text-amber-400 mr-2"></i> 1-Click Presentation Scenarios (Sample Demos)
+                </span>
+                <span class="text-xs text-slate-300">Click any scenario to instantly test and demonstrate algorithms</span>
+            </div>
+            
+            <div id="presetsContainer" class="flex flex-wrap gap-2.5">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <!-- Main Workspace (Controls + Map) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Sidebar Controls -->
+            <div class="lg:col-span-4 flex flex-col gap-5">
+                <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl">
+                    <h2 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center">
+                        <i class="fa-solid fa-compass text-indigo-400 mr-2"></i> Route Configuration
+                    </h2>
+
+                    <!-- Division Filter (Optional Helper) -->
+                    <div class="mb-4" id="divisionFilterBlock">
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5 flex items-center">
+                            <i class="fa-solid fa-layer-group text-teal-400 mr-1.5"></i> Filter by Division (বিভাগ)
+                        </label>
+                        <select id="divisionFilter" onchange="filterNodesByDivision()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option value="ALL">All Divisions (সমগ্র বাংলাদেশ)</option>
+                            <option value="Dhaka">Dhaka (ঢাকা বিভাগ)</option>
+                            <option value="Chattogram">Chattogram (চট্টগ্রাম বিভাগ)</option>
+                            <option value="Sylhet">Sylhet (সিলেট বিভাগ)</option>
+                            <option value="Rajshahi">Rajshahi (রাজশাহী বিভাগ)</option>
+                            <option value="Rangpur">Rangpur (রংপুর বিভাগ)</option>
+                            <option value="Khulna">Khulna (খুলনা বিভাগ)</option>
+                            <option value="Barishal">Barishal (বরিশাল বিভাগ)</option>
+                            <option value="Mymensingh">Mymensingh (ময়মনসিংহ বিভাগ)</option>
+                        </select>
+                    </div>
+
+                    <!-- Source Node Selection -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-slate-200 mb-1.5 flex items-center justify-between">
+                            <span><i class="fa-solid fa-circle-play text-emerald-400 mr-1.5"></i> Origin Jela / District (A)</span>
+                            <span class="text-[11px] font-semibold text-emerald-400">Green Pin</span>
+                        </label>
+                        <select id="sourceSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                            <!-- Populated dynamically -->
+                        </select>
+                        <span class="text-[11px] text-slate-300 mt-1 block">Click any marker on map to set Origin</span>
+                    </div>
+
+                    <!-- Swap Button -->
+                    <div class="flex justify-center -my-2 relative z-10">
+                        <button onclick="swapNodes()" title="Swap Origin & Destination" class="h-8 w-8 rounded-full bg-slate-700 hover:bg-indigo-600 border border-slate-600 text-slate-200 hover:text-white transition flex items-center justify-center shadow">
+                            <i class="fa-solid fa-arrow-down-up-across-line text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- Destination Node Selection -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold text-slate-200 mb-1.5 flex items-center justify-between">
+                            <span><i class="fa-solid fa-flag-checkered text-rose-500 mr-1.5"></i> Destination Jela / District (B)</span>
+                            <span class="text-[11px] font-semibold text-rose-400">Red Pin</span>
+                        </label>
+                        <select id="destSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 font-medium focus:outline-none focus:ring-2 focus:ring-rose-500 transition">
+                            <!-- Populated dynamically -->
+                        </select>
+                        <span class="text-[11px] text-slate-300 mt-1 block">Click any marker on map to set Destination</span>
+                    </div>
+
+                    <!-- Algorithm Selection (All 4 Algorithms) -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-bold text-slate-200 mb-2">
+                            <i class="fa-solid fa-brain text-sky-400 mr-1.5"></i> Pathfinding Algorithm
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
+                                <input type="radio" name="algorithm" value="dijkstra" class="text-indigo-600 focus:ring-0 mr-3">
+                                <div>
+                                    <div class="text-xs font-bold text-slate-100">Dijkstra’s Algorithm</div>
+                                    <div class="text-[11px] text-slate-300">Uniform-cost search; guaranteed shortest road km.</div>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
+                                <input type="radio" name="algorithm" value="a_star" checked class="text-indigo-600 focus:ring-0 mr-3">
+                                <div>
+                                    <div class="text-xs font-bold text-slate-100">A* (A-Star) Search</div>
+                                    <div class="text-[11px] text-slate-300">Heuristic-directed; optimal distance + minimum node visits.</div>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
+                                <input type="radio" name="algorithm" value="bfs" class="text-indigo-600 focus:ring-0 mr-3">
+                                <div>
+                                    <div class="text-xs font-bold text-sky-300">BFS (Breadth-First Search)</div>
+                                    <div class="text-[11px] text-slate-300">Unweighted search; guarantees minimum segment hops.</div>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
+                                <input type="radio" name="algorithm" value="dfs" class="text-indigo-600 focus:ring-0 mr-3">
+                                <div>
+                                    <div class="text-xs font-bold text-rose-300">DFS (Depth-First Search)</div>
+                                    <div class="text-[11px] text-slate-300">Deep traversal; demonstrates suboptimal routing detours.</div>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-2.5 rounded-xl bg-slate-900/80 border border-amber-500/50 cursor-pointer hover:border-amber-400 transition">
+                                <input type="radio" name="algorithm" value="compare" class="text-indigo-600 focus:ring-0 mr-3">
+                                <div>
+                                    <div class="text-xs font-bold text-amber-300">Compare All 4 Algorithms (Part C)</div>
+                                    <div class="text-[11px] text-slate-300">BFS vs DFS vs Dijkstra vs A* side-by-side benchmark.</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Animation Toggle -->
+                    <div class="mb-5 p-3 rounded-xl bg-slate-900/70 border border-slate-700/80">
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" id="animateToggle" checked class="rounded text-indigo-600 focus:ring-0 mr-2.5 h-4 w-4">
+                                <span class="text-xs font-bold text-indigo-300">
+                                    <i class="fa-solid fa-film mr-1"></i> Animate Search Replay
+                                </span>
+                            </label>
+                            <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">Visual Queue</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center space-x-3">
+                        <button onclick="calculateRoute()" id="findRouteBtn" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold text-sm text-white shadow-lg shadow-emerald-600/30 transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Compute Path</span>
+                        </button>
+                        <button onclick="resetRoute()" title="Reset Route" class="p-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white transition">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Network Stats Panel -->
+                <div class="bg-slate-800/70 border border-slate-700/70 rounded-2xl p-4 text-xs">
+                    <span class="text-slate-300 font-bold uppercase tracking-wider text-[11px] block mb-2">Network Statistics</span>
+                    <div class="grid grid-cols-2 gap-3 text-slate-200">
+                        <div class="p-2.5 rounded-lg bg-slate-900/60 border border-slate-700/50">
+                            <span class="text-slate-400 text-[11px] block">Districts / Jelas:</span>
+                            <span class="text-base font-bold text-white" id="totalNodesStat">32 Jelas</span>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-slate-900/60 border border-slate-700/50">
+                            <span class="text-slate-400 text-[11px] block">Highways:</span>
+                            <span class="text-base font-bold text-white" id="totalEdgesStat">36 Segments</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map View Area -->
+            <div class="lg:col-span-8 flex flex-col gap-4">
+                <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-xl flex-1 flex flex-col relative min-h-[600px]">
+                    <div class="flex items-center justify-between mb-3 px-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center">
+                                <i class="fa-solid fa-map text-emerald-400 mr-2"></i> Geographic Map Display
+                            </span>
+                            <span id="mapEngineBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-700 text-slate-200 font-mono">
+                                Detecting Engine...
+                            </span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs">
+                            <button onclick="toggleRoadNetwork()" id="toggleNetworkBtn" class="px-3 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium transition text-xs">
+                                <i class="fa-solid fa-network-wired mr-1"></i> Road Network: ON
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Map Container -->
+                    <div class="relative flex-1 rounded-xl overflow-hidden border border-slate-700/80 bg-slate-950">
+                        <div id="map" class="h-full w-full"></div>
+                        
+                        <!-- Standalone Interactive SVG/Canvas Fallback View -->
+                        <div id="svg-fallback-container" class="absolute inset-0 bg-slate-950 p-4 flex flex-col items-center justify-center hidden">
+                            <div class="w-full flex justify-between items-center text-xs text-slate-300 mb-2 px-2">
+                                <span class="flex items-center text-amber-400 font-bold">
+                                    <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> GIS Vector Canvas Mode (Bangladesh Coordinates)
+                                </span>
+                                <span id="svgRegionNote">National Highway Network</span>
+                            </div>
+                            <svg id="svgGraph" class="w-full h-full border border-slate-800 rounded-lg bg-slate-900/90"></svg>
+                        </div>
+
+                        <!-- Live Exploration Animation Badge -->
+                        <div id="animationStatusBadge" class="absolute top-4 left-4 bg-slate-900/95 border border-amber-500/80 backdrop-blur rounded-xl px-4 py-2.5 shadow-2xl hidden z-20 flex items-center space-x-3">
+                            <span class="h-3 w-3 rounded-full bg-amber-400 anim-exploring"></span>
+                            <div>
+                                <span class="text-[10px] uppercase text-amber-400 font-bold tracking-wider block">Priority Queue Traversal</span>
+                                <span class="text-xs font-bold text-white" id="animCurrentNodeText">Exploring...</span>
+                            </div>
+                        </div>
+
+                        <!-- Route Found Overlay -->
+                        <div id="routeOverlay" class="absolute top-4 right-4 bg-slate-900/95 border border-emerald-500/50 backdrop-blur rounded-xl px-4 py-2.5 shadow-2xl hidden z-20">
+                            <div class="text-[10px] uppercase text-emerald-400 font-bold tracking-wider" id="overlayAlgoTitle">Route Found</div>
+                            <div class="text-sm font-bold text-white" id="overlayDistance">-- km</div>
+                            <div class="text-[11px] text-slate-300" id="overlayNodesCount">-- nodes visited</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics & Itinerary Section -->
+        <div id="resultsSection" class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl hidden">
+            
+            <!-- Single Algorithm Results Panel (BFS, DFS, Dijkstra, or A*) -->
+            <div id="singleResultsPanel">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-700/80 gap-3">
+                    <div>
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Calculated Route</span>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2" id="resAlgorithmName">
+                            Algorithm Result
+                        </h3>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold" id="resHopCount">
+                            Path Length: --
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 4 Metrics Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
+                    <div class="bg-slate-900/80 border border-slate-700/60 p-4 rounded-xl">
+                        <span class="text-slate-300 text-xs font-bold block mb-1">Total Distance</span>
+                        <span class="text-2xl font-bold text-emerald-400" id="resTotalDistance">0.00 km</span>
+                        <span class="text-xs text-slate-400 block mt-0.5" id="resDistanceMeters">(0 meters)</span>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-700/60 p-4 rounded-xl">
+                        <span class="text-slate-300 text-xs font-bold block mb-1">Execution Latency</span>
+                        <span class="text-2xl font-bold text-sky-400" id="resExecutionTime">0.000 ms</span>
+                        <span class="text-xs text-slate-400 block mt-0.5">High-precision timer</span>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-700/60 p-4 rounded-xl">
+                        <span class="text-slate-300 text-xs font-bold block mb-1">Nodes Explored / Visited</span>
+                        <span class="text-2xl font-bold text-purple-400" id="resNodesExplored">0 / 32</span>
+                        <span class="text-xs text-slate-400 block mt-0.5" id="resExploredPercent">0% of total graph</span>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-700/60 p-4 rounded-xl">
+                        <span class="text-slate-300 text-xs font-bold block mb-1">Algorithm Characteristics</span>
+                        <span class="text-lg font-bold text-amber-400 truncate block" id="resEfficiency">Optimal</span>
+                        <span class="text-xs text-slate-400 block mt-0.5" id="resCharNotes">Verified routing</span>
+                    </div>
+                </div>
+
+                <!-- Turn-by-Turn Itinerary Table -->
+                <div class="mt-6">
+                    <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center">
+                        <i class="fa-solid fa-list-ol text-emerald-400 mr-2"></i> Turn-by-Turn Route Breakdown
+                    </h4>
+                    <div class="overflow-x-auto rounded-xl border border-slate-700/70 bg-slate-900/60">
+                        <table class="w-full text-left text-xs text-slate-200">
+                            <thead class="bg-slate-800 text-slate-300 uppercase tracking-wider text-[11px] border-b border-slate-700 font-bold">
+                                <tr>
+                                    <th class="py-3 px-4">Step #</th>
+                                    <th class="py-3 px-4">Identifier</th>
+                                    <th class="py-3 px-4">Jela / District Name</th>
+                                    <th class="py-3 px-4">Division (বিভাগ)</th>
+                                    <th class="py-3 px-4">Coordinates (Lat, Lng)</th>
+                                    <th class="py-3 px-4 text-right">Segment Dist.</th>
+                                    <th class="py-3 px-4 text-right">Cumulative Dist.</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itineraryTableBody" class="divide-y divide-slate-800">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4-Way Comparison Results Panel (Part C) -->
+            <div id="comparisonResultsPanel" class="hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-700/80 gap-2">
+                    <div>
+                        <span class="text-xs font-bold text-amber-400 uppercase tracking-widest">Part C &bull; Comprehensive 4-Way Algorithm Comparison</span>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            BFS vs. DFS vs. Dijkstra vs. A* (A-Star) Search
+                        </h3>
+                    </div>
+                    <div class="text-xs text-slate-300 font-bold" id="compOriginDestSummary">
+                        <!-- Origin -> Destination -->
+                    </div>
+                </div>
+
+                <!-- Comparison Table of all 4 Algorithms -->
+                <div class="mt-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-900/90 shadow-lg">
+                    <table class="w-full text-left text-xs text-slate-200">
+                        <thead class="bg-slate-800 text-slate-300 uppercase tracking-wider text-[11px] border-b border-slate-700 font-bold">
+                            <tr>
+                                <th class="py-3 px-4">Algorithm</th>
+                                <th class="py-3 px-4">Distance (km)</th>
+                                <th class="py-3 px-4">Segment Hops</th>
+                                <th class="py-3 px-4">Nodes Visited</th>
+                                <th class="py-3 px-4">Execution Time</th>
+                                <th class="py-3 px-4">Optimality Verdict</th>
+                                <th class="py-3 px-4 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compTableBody" class="divide-y divide-slate-800">
+                            <!-- Populated dynamically with rows for BFS, DFS, Dijkstra, A* -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Visual Comparison Bars of all 4 Algorithms -->
+                <div class="mt-6 p-5 rounded-2xl bg-slate-900/90 border border-slate-700/80">
+                    <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-4 flex items-center">
+                        <i class="fa-solid fa-chart-simple text-indigo-400 mr-2"></i> Search Space Expansion Comparison (Nodes Explored)
+                    </h4>
+
+                    <!-- Dijkstra Bar -->
+                    <div class="mb-3.5">
+                        <div class="flex justify-between text-xs font-bold mb-1">
+                            <span class="text-sky-400">Dijkstra’s Algorithm (Uniform Radial Search):</span>
+                            <span class="text-slate-200" id="barText-dijkstra">-- nodes</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden border border-slate-700">
+                            <div id="bar-dijkstra" class="bg-sky-500 h-3.5 rounded-full progress-bar-transition" style="width: 80%"></div>
+                        </div>
+                    </div>
+
+                    <!-- A* Bar -->
+                    <div class="mb-3.5">
+                        <div class="flex justify-between text-xs font-bold mb-1">
+                            <span class="text-emerald-400">A* Search (Haversine Directed Heuristic):</span>
+                            <span class="text-slate-200" id="barText-a_star">-- nodes</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden border border-slate-700">
+                            <div id="bar-a_star" class="bg-emerald-500 h-3.5 rounded-full progress-bar-transition" style="width: 35%"></div>
+                        </div>
+                    </div>
+
+                    <!-- BFS Bar -->
+                    <div class="mb-3.5">
+                        <div class="flex justify-between text-xs font-bold mb-1">
+                            <span class="text-indigo-400">BFS (Breadth-First Unweighted Queue):</span>
+                            <span class="text-slate-200" id="barText-bfs">-- nodes</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden border border-slate-700">
+                            <div id="bar-bfs" class="bg-indigo-500 h-3.5 rounded-full progress-bar-transition" style="width: 60%"></div>
+                        </div>
+                    </div>
+
+                    <!-- DFS Bar -->
+                    <div class="mb-2">
+                        <div class="flex justify-between text-xs font-bold mb-1">
+                            <span class="text-rose-400">DFS (Depth-First Stack Traversal):</span>
+                            <span class="text-slate-200" id="barText-dfs">-- nodes</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden border border-slate-700">
+                            <div id="bar-dfs" class="bg-rose-500 h-3.5 rounded-full progress-bar-transition" style="width: 50%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pedagogical Algorithmic Summary Card -->
+                <div class="mt-5 p-4 rounded-xl bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-700/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="h-10 w-10 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 text-lg">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-emerald-300">Algorithmic Insight for Presentation</div>
+                            <p class="text-xs text-slate-200 mt-0.5" id="compInsightText">
+                                Evaluating 4-way path comparison...
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 text-xs font-bold">
+                        <span class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 border border-slate-700" id="compDistMatchBadge">
+                            Optimal Distance: -- km
+                        </span>
+                        <span class="px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300" id="compAStarSavedBadge">
+                            -- nodes saved
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Google Maps API Key Modal -->
+    <div id="apiKeyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-white text-base flex items-center">
+                    <i class="fa-solid fa-key text-emerald-400 mr-2"></i> Google Maps API Key
+                </h3>
+                <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+                Paste your Google Maps JavaScript API key below to render live Google Maps tiles.
+            </p>
+            <div class="mb-4">
+                <input type="text" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="clearSavedApiKey()" class="px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-xs text-slate-300 transition">
+                    Clear Key
+                </button>
+                <button onclick="saveApiKey()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs text-white font-bold transition">
+                    Save & Load Map
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Django Configuration & Embedded Fallback Data -->
+    <script>
+        // Resolve Google Maps API Key safely (Handles both Django template rendering and direct file:// opening)
+        let serverApiKey = "{{ google_maps_api_key }}";
+        const DEFAULT_GOOGLE_MAPS_KEY = "AIzaSyD5yoMTHK-CAH192glUWXWA8Y6DCYWo31s";
+        if (!serverApiKey || serverApiKey.includes("{{") || serverApiKey.includes("}}")) {
+            serverApiKey = DEFAULT_GOOGLE_MAPS_KEY;
+        }
+
+        window.DJANGO_CONFIG = {
+            apiKeyFromSettings: serverApiKey,
+        };
+
+        // Embedded Spatial Graph Dataset (32 Bangladesh Jelas + 16 Dhaka Metro Hubs)
+        const EMBEDDED_GRAPH_DATA = {"bangladesh":{"status":"success","region":"bangladesh","nodes":{"BD_BAR":{"id":30,"code":"BD_BAR","name":"Barishal","bn_name":"\u09ac\u09b0\u09bf\u09b6\u09be\u09b2","division":"Barishal","region":"bangladesh","lat":22.701,"lng":90.3535,"description":"Venice of Bengal with floating guava markets"},"BD_PAT":{"id":64,"code":"BD_PAT","name":"Patuakhali","bn_name":"\u09aa\u099f\u09c1\u09af\u09bc\u09be\u0996\u09be\u09b2\u09c0","division":"Barishal","region":"bangladesh","lat":22.3596,"lng":90.3299,"description":"Gateway to Kuakata Daughter of Sea beach"},"BD_BRB":{"id":37,"code":"BD_BRB","name":"Brahmanbaria","bn_name":"\u09ac\u09cd\u09b0\u09be\u09b9\u09cd\u09ae\u09a3\u09ac\u09be\u09a1\u09bc\u09bf\u09af\u09bc\u09be","division":"Chattogram","region":"bangladesh","lat":23.9608,"lng":91.1115,"description":"Major natural gas field hub & eastern rail nexus"},"BD_CHP":{"id":58,"code":"BD_CHP","name":"Chandpur","bn_name":"\u099a\u09be\u0981\u09a6\u09aa\u09c1\u09b0","division":"Chattogram","region":"bangladesh","lat":23.2333,"lng":90.6667,"description":"Hilsa fish capital at Padma & Meghna confluence"},"BD_CTG":{"id":34,"code":"BD_CTG","name":"Chattogram","bn_name":"\u099a\u099f\u09cd\u099f\u0997\u09cd\u09b0\u09be\u09ae","division":"Chattogram","region":"bangladesh","lat":22.3569,"lng":91.7832,"description":"Principal seaport and commercial capital"},"BD_CXB":{"id":35,"code":"BD_CXB","name":"Cox's Bazar","bn_name":"\u0995\u0995\u09cd\u09b8\u09ac\u09be\u099c\u09be\u09b0","division":"Chattogram","region":"bangladesh","lat":21.4272,"lng":92.0058,"description":"World's longest unbroken natural sandy sea beach"},"BD_COM":{"id":32,"code":"BD_COM","name":"Cumilla","bn_name":"\u0995\u09c1\u09ae\u09bf\u09b2\u09cd\u09b2\u09be","division":"Chattogram","region":"bangladesh","lat":23.4682,"lng":91.1788,"description":"Historic trade center on Dhaka-Chittagong Highway"},"BD_FEN":{"id":33,"code":"BD_FEN","name":"Feni","bn_name":"\u09ab\u09c7\u09a8\u09c0","division":"Chattogram","region":"bangladesh","lat":23.0159,"lng":91.3976,"description":"Key transit checkpoint connecting port to capital"},"BD_NOA":{"id":57,"code":"BD_NOA","name":"Noakhali","bn_name":"\u09a8\u09cb\u09af\u09bc\u09be\u0996\u09be\u09b2\u09c0","division":"Chattogram","region":"bangladesh","lat":22.8696,"lng":91.0993,"description":"Coastal southern district of Chittagong division"},"BD_DHK":{"id":17,"code":"BD_DHK","name":"Dhaka","bn_name":"\u09a2\u09be\u0995\u09be","division":"Dhaka","region":"bangladesh","lat":23.8103,"lng":90.4125,"description":"National capital and economic heart of Bangladesh"},"BD_FRP":{"id":31,"code":"BD_FRP","name":"Faridpur","bn_name":"\u09ab\u09b0\u09bf\u09a6\u09aa\u09c1\u09b0","division":"Dhaka","region":"bangladesh","lat":23.6071,"lng":89.8429,"description":"Padma Bridge west corridor connecting South Bengal"},"BD_GZP":{"id":18,"code":"BD_GZP","name":"Gazipur","bn_name":"\u0997\u09be\u099c\u09c0\u09aa\u09c1\u09b0","division":"Dhaka","region":"bangladesh","lat":24.0023,"lng":90.4264,"description":"Industrial hub & northern transport intersection"},"BD_GPL":{"id":56,"code":"BD_GPL","name":"Gopalganj","bn_name":"\u0997\u09cb\u09aa\u09be\u09b2\u0997\u099e\u09cd\u099c","division":"Dhaka","region":"bangladesh","lat":23.0051,"lng":89.8266,"description":"South-central district near the Madhumati river"},"BD_MNK":{"id":55,"code":"BD_MNK","name":"Manikganj","bn_name":"\u09ae\u09be\u09a8\u09bf\u0995\u0997\u099e\u09cd\u099c","division":"Dhaka","region":"bangladesh","lat":23.8617,"lng":90.0003,"description":"Aricha ghat approach across the Padma river"},"BD_NGJ":{"id":19,"code":"BD_NGJ","name":"Narayanganj","bn_name":"\u09a8\u09be\u09b0\u09be\u09af\u09bc\u09a3\u0997\u099e\u09cd\u099c","division":"Dhaka","region":"bangladesh","lat":23.6238,"lng":90.5,"description":"Historic inland river port & Shitalakshya trade city"},"BD_NRD":{"id":54,"code":"BD_NRD","name":"Narsingdi","bn_name":"\u09a8\u09b0\u09b8\u09bf\u0982\u09a6\u09c0","division":"Dhaka","region":"bangladesh","lat":23.9193,"lng":90.7176,"description":"Eastern industrial & textile manufacturing district"},"BD_TNG":{"id":20,"code":"BD_TNG","name":"Tangail","bn_name":"\u099f\u09be\u0999\u09cd\u0997\u09be\u0987\u09b2","division":"Dhaka","region":"bangladesh","lat":24.2513,"lng":89.9167,"description":"Gateway to Jamuna Bridge (Bangabandhu Bridge)"},"BD_JSH":{"id":28,"code":"BD_JSH","name":"Jashore","bn_name":"\u09af\u09b6\u09cb\u09b0","division":"Khulna","region":"bangladesh","lat":23.1664,"lng":89.2081,"description":"Benapole land port & first liberated district"},"BD_KLN":{"id":29,"code":"BD_KLN","name":"Khulna","bn_name":"\u0996\u09c1\u09b2\u09a8\u09be","division":"Khulna","region":"bangladesh","lat":22.8456,"lng":89.5403,"description":"Gateway to Sundarbans Mangrove Forest"},"BD_KSH":{"id":27,"code":"BD_KSH","name":"Kushtia","bn_name":"\u0995\u09c1\u09b7\u09cd\u099f\u09bf\u09af\u09bc\u09be","division":"Khulna","region":"bangladesh","lat":23.9013,"lng":89.1205,"description":"Lalon Shah sanctuary & Rabindranath Kuthibari"},"BD_MYM":{"id":21,"code":"BD_MYM","name":"Mymensingh","bn_name":"\u09ae\u09af\u09bc\u09ae\u09a8\u09b8\u09bf\u0982\u09b9","division":"Mymensingh","region":"bangladesh","lat":24.7471,"lng":90.4203,"description":"Agricultural university & Brahmaputra basin center"},"BD_BOG":{"id":22,"code":"BD_BOG","name":"Bogura","bn_name":"\u09ac\u0997\u09c1\u09a1\u09bc\u09be","division":"Rajshahi","region":"bangladesh","lat":24.8465,"lng":89.3777,"description":"Gateway to North Bengal & Mahasthangarh"},"BD_NAT":{"id":62,"code":"BD_NAT","name":"Natore","bn_name":"\u09a8\u09be\u099f\u09cb\u09b0","division":"Rajshahi","region":"bangladesh","lat":24.4206,"lng":89.0003,"description":"Historic Uttara Gonobhaban & Kachagolla center"},"BD_PAB":{"id":26,"code":"BD_PAB","name":"Pabna","bn_name":"\u09aa\u09be\u09ac\u09a8\u09be","division":"Rajshahi","region":"bangladesh","lat":24.0064,"lng":89.2372,"description":"Rooppur Nuclear plant & mental health institute"},"BD_RAJ":{"id":25,"code":"BD_RAJ","name":"Rajshahi","bn_name":"\u09b0\u09be\u099c\u09b6\u09be\u09b9\u09c0","division":"Rajshahi","region":"bangladesh","lat":24.3745,"lng":88.6042,"description":"Silk City & major education hub on the Padma"},"BD_SRJ":{"id":61,"code":"BD_SRJ","name":"Sirajganj","bn_name":"\u09b8\u09bf\u09b0\u09be\u099c\u0997\u099e\u09cd\u099c","division":"Rajshahi","region":"bangladesh","lat":24.4534,"lng":89.7007,"description":"Western abutment of the Jamuna Bridge"},"BD_DNJ":{"id":24,"code":"BD_DNJ","name":"Dinajpur","bn_name":"\u09a6\u09bf\u09a8\u09be\u099c\u09aa\u09c1\u09b0","division":"Rangpur","region":"bangladesh","lat":25.6217,"lng":88.6354,"description":"Kantajew Temple & agricultural granary"},"BD_GAI":{"id":63,"code":"BD_GAI","name":"Gaibandha","bn_name":"\u0997\u09be\u0987\u09ac\u09be\u09a8\u09cd\u09a7\u09be","division":"Rangpur","region":"bangladesh","lat":25.3288,"lng":89.5406,"description":"Brahmaputra river flood-plain district"},"BD_RNG":{"id":23,"code":"BD_RNG","name":"Rangpur","bn_name":"\u09b0\u0982\u09aa\u09c1\u09b0","division":"Rangpur","region":"bangladesh","lat":25.7439,"lng":89.2752,"description":"Divisional headquarters of northern Bangladesh"},"BD_HBJ":{"id":60,"code":"BD_HBJ","name":"Habiganj","bn_name":"\u09b9\u09ac\u09bf\u0997\u099e\u09cd\u099c","division":"Sylhet","region":"bangladesh","lat":24.3749,"lng":91.4155,"description":"Southwestern tea and natural gas reserve district"},"BD_MLB":{"id":59,"code":"BD_MLB","name":"Moulvibazar","bn_name":"\u09ae\u09cc\u09b2\u09ad\u09c0\u09ac\u09be\u099c\u09be\u09b0","division":"Sylhet","region":"bangladesh","lat":24.4829,"lng":91.7774,"description":"Sreemangal tea garden paradise & Lawachara"},"BD_SYL":{"id":36,"code":"BD_SYL","name":"Sylhet","bn_name":"\u09b8\u09bf\u09b2\u09c7\u099f","division":"Sylhet","region":"bangladesh","lat":24.8949,"lng":91.8687,"description":"Spiritual tea capital & shrine of Hazrat Shah Jalal"}},"edges":[{"source":"BD_BAR","destination":"BD_FRP","distance_km":113.5,"is_bidirectional":true},{"source":"BD_BAR","destination":"BD_KLN","distance_km":84.9,"is_bidirectional":true},{"source":"BD_BAR","destination":"BD_PAT","distance_km":38.0,"is_bidirectional":true},{"source":"BD_BOG","destination":"BD_GAI","distance_km":56.1,"is_bidirectional":true},{"source":"BD_BOG","destination":"BD_NAT","distance_km":60.8,"is_bidirectional":true},{"source":"BD_BOG","destination":"BD_RAJ","distance_km":94.2,"is_bidirectional":true},{"source":"BD_BOG","destination":"BD_RNG","distance_km":100.3,"is_bidirectional":true},{"source":"BD_BRB","destination":"BD_HBJ","distance_km":55.4,"is_bidirectional":true},{"source":"BD_BRB","destination":"BD_SYL","distance_km":129.1,"is_bidirectional":true},{"source":"BD_CHP","destination":"BD_NOA","distance_km":60.0,"is_bidirectional":true},{"source":"BD_COM","destination":"BD_BRB","distance_km":55.2,"is_bidirectional":true},{"source":"BD_COM","destination":"BD_CHP","distance_km":58.4,"is_bidirectional":true},{"source":"BD_COM","destination":"BD_FEN","distance_km":55.0,"is_bidirectional":true},{"source":"BD_CTG","destination":"BD_CXB","distance_km":105.9,"is_bidirectional":true},{"source":"BD_DHK","destination":"BD_FRP","distance_km":62.2,"is_bidirectional":true},{"source":"BD_DHK","destination":"BD_GZP","distance_km":21.4,"is_bidirectional":true},{"source":"BD_DHK","destination":"BD_MNK","distance_km":42.3,"is_bidirectional":true},{"source":"BD_DHK","destination":"BD_NGJ","distance_km":22.6,"is_bidirectional":true},{"source":"BD_FEN","destination":"BD_CTG","distance_km":83.3,"is_bidirectional":true},{"source":"BD_FEN","destination":"BD_NOA","distance_km":34.6,"is_bidirectional":true},{"source":"BD_FRP","destination":"BD_BAR","distance_km":113.5,"is_bidirectional":true},{"source":"BD_FRP","destination":"BD_GPL","distance_km":67.0,"is_bidirectional":true},{"source":"BD_FRP","destination":"BD_PAB","distance_km":76.0,"is_bidirectional":true},{"source":"BD_GPL","destination":"BD_BAR","distance_km":63.7,"is_bidirectional":true},{"source":"BD_GPL","destination":"BD_KLN","distance_km":34.3,"is_bidirectional":true},{"source":"BD_GZP","destination":"BD_MYM","distance_km":82.8,"is_bidirectional":true},{"source":"BD_GZP","destination":"BD_NRD","distance_km":31.0,"is_bidirectional":true},{"source":"BD_GZP","destination":"BD_TNG","distance_km":58.7,"is_bidirectional":true},{"source":"BD_HBJ","destination":"BD_MLB","distance_km":38.6,"is_bidirectional":true},{"source":"BD_JSH","destination":"BD_KLN","distance_km":49.3,"is_bidirectional":true},{"source":"BD_KLN","destination":"BD_BAR","distance_km":84.9,"is_bidirectional":true},{"source":"BD_KSH","destination":"BD_FRP","distance_km":80.5,"is_bidirectional":true},{"source":"BD_KSH","destination":"BD_JSH","distance_km":82.2,"is_bidirectional":true},{"source":"BD_MLB","destination":"BD_SYL","distance_km":46.7,"is_bidirectional":true},{"source":"BD_MNK","destination":"BD_FRP","distance_km":32.5,"is_bidirectional":true},{"source":"BD_MYM","destination":"BD_SYL","distance_km":147.1,"is_bidirectional":true},{"source":"BD_NAT","destination":"BD_PAB","distance_km":51.9,"is_bidirectional":true},{"source":"BD_NAT","destination":"BD_RAJ","distance_km":40.4,"is_bidirectional":true},{"source":"BD_NGJ","destination":"BD_CHP","distance_km":46.6,"is_bidirectional":true},{"source":"BD_NGJ","destination":"BD_COM","distance_km":71.3,"is_bidirectional":true},{"source":"BD_NRD","destination":"BD_BRB","distance_km":40.3,"is_bidirectional":true},{"source":"BD_PAB","destination":"BD_KSH","distance_km":16.6,"is_bidirectional":true},{"source":"BD_RAJ","destination":"BD_KSH","distance_km":74.3,"is_bidirectional":true},{"source":"BD_RAJ","destination":"BD_PAB","distance_km":76.1,"is_bidirectional":true},{"source":"BD_RNG","destination":"BD_DNJ","distance_km":65.5,"is_bidirectional":true},{"source":"BD_RNG","destination":"BD_GAI","distance_km":53.3,"is_bidirectional":true},{"source":"BD_SRJ","destination":"BD_BOG","distance_km":54.6,"is_bidirectional":true},{"source":"BD_SRJ","destination":"BD_NAT","distance_km":71.0,"is_bidirectional":true},{"source":"BD_SRJ","destination":"BD_PAB","distance_km":68.4,"is_bidirectional":true},{"source":"BD_TNG","destination":"BD_BOG","distance_km":85.7,"is_bidirectional":true},{"source":"BD_TNG","destination":"BD_PAB","distance_km":74.1,"is_bidirectional":true},{"source":"BD_TNG","destination":"BD_SRJ","distance_km":31.4,"is_bidirectional":true}],"total_nodes":32,"total_edges":52},"dhaka":{"status":"success","region":"dhaka","nodes":{"DHK_BAN":{"id":48,"code":"DHK_BAN","name":"Banani 11","bn_name":"\u09ac\u09a8\u09be\u09a8\u09c0","division":"Dhaka","region":"dhaka","lat":23.794,"lng":90.4043,"description":"High-end dining and commercial district"},"DHK_JFP":{"id":52,"code":"DHK_JFP","name":"Bashundhara R/A / Jamuna Park","bn_name":"\u09ac\u09b8\u09c1\u09a8\u09cd\u09a7\u09b0\u09be / \u09af\u09ae\u09c1\u09a8\u09be \u09aa\u09be\u09b0\u09cd\u0995","division":"Dhaka","region":"dhaka","lat":23.8135,"lng":90.4242,"description":"Pragati Sarani mega shopping concourse"},"DHK_D27":{"id":44,"code":"DHK_D27","name":"Dhanmondi 27 / Rapa Plaza","bn_name":"\u09a7\u09be\u09a8\u09ae\u09a8\u09cd\u09a1\u09bf \u09e8\u09ed","division":"Dhaka","region":"dhaka","lat":23.7538,"lng":90.3702,"description":"Mirpur Road shopping concourse"},"DHK_D32":{"id":43,"code":"DHK_D32","name":"Dhanmondi 32 (Lake)","bn_name":"\u09a7\u09be\u09a8\u09ae\u09a8\u09cd\u09a1\u09bf \u09e9\u09e8","division":"Dhaka","region":"dhaka","lat":23.7511,"lng":90.3776,"description":"Historic lakeside promenade"},"DHK_FMG":{"id":41,"code":"DHK_FMG","name":"Farmgate","bn_name":"\u09ab\u09be\u09b0\u09cd\u09ae\u0997\u09c7\u099f","division":"Dhaka","region":"dhaka","lat":23.757,"lng":90.3897,"description":"Central transit & bus intersection"},"DHK_GL1":{"id":46,"code":"DHK_GL1","name":"Gulshan-1 Circle","bn_name":"\u0997\u09c1\u09b2\u09b6\u09be\u09a8 \u09e7","division":"Dhaka","region":"dhaka","lat":23.7806,"lng":90.4172,"description":"Commercial and diplomatic avenue"},"DHK_GL2":{"id":47,"code":"DHK_GL2","name":"Gulshan-2 Circle","bn_name":"\u0997\u09c1\u09b2\u09b6\u09be\u09a8 \u09e8","division":"Dhaka","region":"dhaka","lat":23.7925,"lng":90.4162,"description":"Diplomatic enclave center"},"DHK_KRB":{"id":42,"code":"DHK_KRB","name":"Karwan Bazar","bn_name":"\u0995\u09be\u09b0\u0993\u09af\u09bc\u09be\u09a8 \u09ac\u09be\u099c\u09be\u09b0","division":"Dhaka","region":"dhaka","lat":23.7516,"lng":90.3934,"description":"Major wholesale trade & media complex"},"DHK_LAL":{"id":53,"code":"DHK_LAL","name":"Lalbagh Fort (Old Dhaka)","bn_name":"\u09b2\u09be\u09b2\u09ac\u09be\u0997 \u0995\u09c7\u09b2\u09cd\u09b2\u09be","division":"Dhaka","region":"dhaka","lat":23.7196,"lng":90.3881,"description":"Historic 17th-century Mughal fort complex"},"DHK_MR1":{"id":50,"code":"DHK_MR1","name":"Mirpur-1","bn_name":"\u09ae\u09bf\u09b0\u09aa\u09c1\u09b0 \u09e7","division":"Dhaka","region":"dhaka","lat":23.7956,"lng":90.3537,"description":"Botanical garden & zoo approach"},"DHK_M10":{"id":49,"code":"DHK_M10","name":"Mirpur-10 Circle","bn_name":"\u09ae\u09bf\u09b0\u09aa\u09c1\u09b0 \u09e7\u09e6","division":"Dhaka","region":"dhaka","lat":23.807,"lng":90.3686,"description":"Key northern transit & Metro Rail interchange"},"DHK_MHK":{"id":45,"code":"DHK_MHK","name":"Mohakhali Inter-district Hub","bn_name":"\u09ae\u09b9\u09be\u0996\u09be\u09b2\u09c0","division":"Dhaka","region":"dhaka","lat":23.7777,"lng":90.4057,"description":"Major bus terminal & flyover junction"},"DHK_MTJ":{"id":40,"code":"DHK_MTJ","name":"Motijheel Commercial Area","bn_name":"\u09ae\u09a4\u09bf\u099d\u09bf\u09b2","division":"Dhaka","region":"dhaka","lat":23.733,"lng":90.4172,"description":"Primary financial district & central bank"},"DHK_SHB":{"id":38,"code":"DHK_SHB","name":"Shahbagh","bn_name":"\u09b6\u09be\u09b9\u09ac\u09be\u0997","division":"Dhaka","region":"dhaka","lat":23.738,"lng":90.3957,"description":"Central cultural hub, BSMMU & National Museum"},"DHK_TSC":{"id":39,"code":"DHK_TSC","name":"TSC / Dhaka University","bn_name":"\u099f\u09bf\u098f\u09b8\u09b8\u09bf / \u09a2\u09be\u09ac\u09bf","division":"Dhaka","region":"dhaka","lat":23.7324,"lng":90.3958,"description":"Dhaka University Campus & Student Center"},"DHK_UT3":{"id":51,"code":"DHK_UT3","name":"Uttara Sector 3 / Airport Rd","bn_name":"\u0989\u09a4\u09cd\u09a4\u09b0\u09be \u09e9","division":"Dhaka","region":"dhaka","lat":23.8682,"lng":90.3995,"description":"Northern residential zone & airport gateway"}},"edges":[{"source":"DHK_BAN","destination":"DHK_UT3","distance_km":8.3,"is_bidirectional":true},{"source":"DHK_D27","destination":"DHK_MR1","distance_km":4.9,"is_bidirectional":true},{"source":"DHK_D32","destination":"DHK_D27","distance_km":0.8,"is_bidirectional":true},{"source":"DHK_FMG","destination":"DHK_D27","distance_km":2.0,"is_bidirectional":true},{"source":"DHK_FMG","destination":"DHK_MHK","distance_km":2.8,"is_bidirectional":true},{"source":"DHK_GL1","destination":"DHK_GL2","distance_km":1.3,"is_bidirectional":true},{"source":"DHK_GL1","destination":"DHK_JFP","distance_km":3.7,"is_bidirectional":true},{"source":"DHK_GL2","destination":"DHK_BAN","distance_km":1.2,"is_bidirectional":true},{"source":"DHK_GL2","destination":"DHK_JFP","distance_km":2.5,"is_bidirectional":true},{"source":"DHK_JFP","destination":"DHK_UT3","distance_km":6.6,"is_bidirectional":true},{"source":"DHK_KRB","destination":"DHK_D32","distance_km":1.6,"is_bidirectional":true},{"source":"DHK_KRB","destination":"DHK_FMG","distance_km":0.7,"is_bidirectional":true},{"source":"DHK_M10","destination":"DHK_UT3","distance_km":7.5,"is_bidirectional":true},{"source":"DHK_MHK","destination":"DHK_BAN","distance_km":1.8,"is_bidirectional":true},{"source":"DHK_MHK","destination":"DHK_GL1","distance_km":1.2,"is_bidirectional":true},{"source":"DHK_MHK","destination":"DHK_M10","distance_km":5.0,"is_bidirectional":true},{"source":"DHK_MR1","destination":"DHK_M10","distance_km":2.0,"is_bidirectional":true},{"source":"DHK_SHB","destination":"DHK_KRB","distance_km":1.5,"is_bidirectional":true},{"source":"DHK_SHB","destination":"DHK_LAL","distance_km":2.2,"is_bidirectional":true},{"source":"DHK_SHB","destination":"DHK_MTJ","distance_km":2.3,"is_bidirectional":true},{"source":"DHK_SHB","destination":"DHK_TSC","distance_km":0.6,"is_bidirectional":true},{"source":"DHK_TSC","destination":"DHK_LAL","distance_km":1.6,"is_bidirectional":true},{"source":"DHK_TSC","destination":"DHK_MTJ","distance_km":2.2,"is_bidirectional":true}],"total_nodes":16,"total_edges":23}};
+
+        // Google Maps Auth Failure Global Handler
+        window.gm_authFailure = function() {
+            console.warn("Google Maps JavaScript API authentication failed or key restricted. Switching to GIS Vector Canvas fallback.");
+            isGoogleMapsLoaded = false;
+            initSvgFallback();
+            const badge = document.getElementById('mapEngineBadge');
+            if (badge) {
+                badge.innerText = 'GIS Vector Canvas (Fallback)';
+                badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30 font-mono';
+            }
+        };
+    </script>
+
+    <!-- Main Application JavaScript -->
+    <script>
+        let currentRegion = "bangladesh";
+        let googleMap = null;
+        let googleMarkers = {};
+        let activePolyline = null;
+        let networkPolylines = [];
+        let showNetworkLines = true;
+        let graphNodes = {};
+        let graphEdges = [];
+        let allNodesList = [];
+        let isGoogleMapsLoaded = false;
+        let isLightMode = false;
+        let comparisonCache = null;
+
+        // Presentation Presets
+        const PRESETS = {
+            bangladesh: [
+                { label: "Dhaka ➔ Chattogram", src: "BD_DHK", dst: "BD_CTG", desc: "Capital to Port City (National Economic Corridor)" },
+                { label: "Rangpur ➔ Cox's Bazar", src: "BD_RNG", dst: "BD_CXB", desc: "North Bengal to Sea Beach (Long Distance)" },
+                { label: "Sylhet ➔ Khulna", src: "BD_SYL", dst: "BD_KLN", desc: "Tea Capital to Sundarbans Mangrove" },
+                { label: "Rajshahi ➔ Barishal", src: "BD_RAJ", dst: "BD_BAR", desc: "Silk City to Riverine South via Padma Bridge" },
+                { label: "Bogura ➔ Patuakhali", src: "BD_BOG", dst: "BD_PAT", desc: "North Gateway to Kuakata Sea Coast" },
+            ],
+            dhaka: [
+                { label: "Shahbagh ➔ Gulshan-2", src: "DHK_SHB", dst: "DHK_GL2", desc: "Cultural Center to Diplomatic Enclave" },
+                { label: "Uttara ➔ Lalbagh Fort", src: "DHK_UT3", dst: "DHK_LAL", desc: "Airport Expressway to Historic Old Town" },
+                { label: "Mirpur-10 ➔ Motijheel", src: "DHK_M10", dst: "DHK_MTJ", desc: "Northern Metro Interchange to Financial District" },
+                { label: "Dhanmondi 32 ➔ Bashundhara", src: "DHK_D32", dst: "DHK_JFP", desc: "Lake Promenade to Mega Shopping Center" },
+            ]
+        };
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', async () => {
+            initApiKeyFromStorage();
+            await loadNetworkData(currentRegion);
+            loadGoogleMapsOrFallback();
+        });
+
+        // 1. Theme Switcher (Day/Projector vs. Night/Dashboard)
+        function toggleTheme() {
+            isLightMode = !isLightMode;
+            const html = document.documentElement;
+            const body = document.body;
+            const icon = document.getElementById('themeIcon');
+            const label = document.getElementById('themeLabel');
+
+            if (isLightMode) {
+                html.classList.remove('dark');
+                body.classList.remove('bg-slate-900', 'text-slate-100');
+                body.classList.add('bg-slate-100', 'text-slate-900');
+                icon.className = 'fa-solid fa-moon text-indigo-400';
+                label.innerText = 'Dashboard View';
+                if (isGoogleMapsLoaded && googleMap) {
+                    googleMap.setOptions({ styles: [] });
+                }
+            } else {
+                html.classList.add('dark');
+                body.classList.remove('bg-slate-100', 'text-slate-900');
+                body.classList.add('bg-slate-900', 'text-slate-100');
+                icon.className = 'fa-solid fa-sun text-amber-400';
+                label.innerText = 'Projector View';
+                if (isGoogleMapsLoaded && googleMap) {
+                    googleMap.setOptions({ styles: getDarkMapStyles() });
+                }
+            }
+
+            if (!isGoogleMapsLoaded) {
+                renderSvgGraph();
+            }
+        }
+
+        // 2. Network Switcher (Bangladesh Jelas vs. Dhaka Metro)
+        async function switchNetwork(region) {
+            if (currentRegion === region) return;
+            currentRegion = region;
+
+            const bdBtn = document.getElementById('netBtn-bangladesh');
+            const dhkBtn = document.getElementById('netBtn-dhaka');
+            const divFilterBlock = document.getElementById('divisionFilterBlock');
+
+            if (region === 'bangladesh') {
+                bdBtn.className = "px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 bg-emerald-600 text-white shadow";
+                dhkBtn.className = "px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 text-slate-400 hover:text-white";
+                document.getElementById('currentNetworkLabel').innerText = "Bangladesh Jela & District Highway Network (32 Districts)";
+                divFilterBlock.classList.remove('hidden');
+            } else {
+                dhkBtn.className = "px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 bg-emerald-600 text-white shadow";
+                bdBtn.className = "px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 text-slate-400 hover:text-white";
+                document.getElementById('currentNetworkLabel').innerText = "Dhaka Metropolitan Transit Network (16 Landmarks)";
+                divFilterBlock.classList.add('hidden');
+            }
+
+            resetRoute();
+            await loadNetworkData(region);
+            recenterMap();
+        }
+
+        // 3. Apply Graph Data to UI
+        function applyGraphData(data, region) {
+            graphNodes = data.nodes;
+            graphEdges = data.edges;
+            allNodesList = Object.values(data.nodes);
+            document.getElementById('totalNodesStat').innerText = `${data.total_nodes} ${region === 'bangladesh' ? 'Jelas' : 'Hubs'}`;
+            document.getElementById('totalEdgesStat').innerText = `${data.total_edges} Segments`;
+            populateDropdowns(allNodesList);
+            renderPresets(region);
+            if (isGoogleMapsLoaded && googleMap) {
+                renderGoogleMapNodesAndNetwork();
+            } else {
+                renderSvgGraph();
+            }
+        }
+
+        // Load Network Data (Supports both Django API and direct file:// embedded fallback)
+        async function loadNetworkData(region) {
+            if (window.location.protocol === 'file:') {
+                const banner = document.getElementById('fileProtocolBanner');
+                if (banner) banner.classList.remove('hidden');
+            } else if (window.location.hostname.includes('github.io')) {
+                const banner = document.getElementById('fileProtocolBanner');
+                if (banner) {
+                    banner.classList.remove('hidden');
+                    banner.innerHTML = `
+                        <div class="flex items-center space-x-2.5">
+                            <i class="fa-brands fa-github text-white text-base"></i>
+                            <span><strong>Live GitHub Pages Demo:</strong> Google Maps & embedded 32 Bangladesh Jelas algorithms are active! To run the full Django backend & Admin DB, clone this repo and run <code>python manage.py runserver</code>.</span>
+                        </div>
+                        <button onclick="document.getElementById('fileProtocolBanner').remove()" class="text-white hover:text-amber-200 text-base font-bold ml-4 leading-none">&times;</button>
+                    `;
+                }
+            }
+
+            try {
+                if (window.location.protocol !== 'file:') {
+                    const response = await fetch(`/api/graph/?region=${region}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            applyGraphData(data, region);
+                            return;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn("Django backend API unavailable or file:// origin. Falling back to embedded dataset.", err);
+            }
+
+            // Embedded Dataset Fallback
+            if (typeof EMBEDDED_GRAPH_DATA !== 'undefined' && EMBEDDED_GRAPH_DATA[region]) {
+                applyGraphData(EMBEDDED_GRAPH_DATA[region], region);
+            }
+        }
+
+        // Filter Jelas by Division
+        function filterNodesByDivision() {
+            const selectedDiv = document.getElementById('divisionFilter').value;
+            let filtered = allNodesList;
+            if (selectedDiv !== 'ALL') {
+                filtered = allNodesList.filter(n => n.division === selectedDiv);
+            }
+            populateDropdowns(filtered.length > 0 ? filtered : allNodesList);
+        }
+
+        function populateDropdowns(nodes) {
+            const srcSelect = document.getElementById('sourceSelect');
+            const dstSelect = document.getElementById('destSelect');
+            srcSelect.innerHTML = '';
+            dstSelect.innerHTML = '';
+
+            nodes.forEach((n, idx) => {
+                const bn = n.bn_name ? ` (${n.bn_name})` : '';
+                const divTag = n.division ? ` [${n.division}]` : '';
+                const opt1 = new Option(`${n.name}${bn}${divTag}`, n.code);
+                const opt2 = new Option(`${n.name}${bn}${divTag}`, n.code);
+                if (idx === 0) opt1.selected = true;
+                if (idx === nodes.length - 1) opt2.selected = true;
+                srcSelect.add(opt1);
+                dstSelect.add(opt2);
+            });
+        }
+
+        function renderPresets(region) {
+            const container = document.getElementById('presetsContainer');
+            container.innerHTML = '';
+            const presets = PRESETS[region] || [];
+            presets.forEach(p => {
+                const btn = document.createElement('button');
+                btn.className = "px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-emerald-600 border border-slate-700 hover:border-emerald-500 text-xs text-slate-200 hover:text-white font-semibold transition flex items-center space-x-1.5 shadow-sm";
+                btn.innerHTML = `<i class="fa-solid fa-play text-[10px] text-emerald-400"></i> <span>${p.label}</span>`;
+                btn.title = p.desc;
+                btn.onclick = () => applyPreset(p.src, p.dst);
+                container.appendChild(btn);
+            });
+        }
+
+        function applyPreset(src, dst) {
+            document.getElementById('sourceSelect').value = src;
+            document.getElementById('destSelect').value = dst;
+            updateMarkerColors();
+            calculateRoute();
+        }
+
+        function recenterMap() {
+            if (isGoogleMapsLoaded && googleMap) {
+                if (currentRegion === 'bangladesh') {
+                    googleMap.setCenter({ lat: 23.8103, lng: 90.4125 });
+                    googleMap.setZoom(7);
+                } else {
+                    googleMap.setCenter({ lat: 23.7771, lng: 90.3995 });
+                    googleMap.setZoom(12);
+                }
+            }
+        }
+
+        // 4. API Key Handling
+        function initApiKeyFromStorage() {
+            const savedKey = localStorage.getItem('google_maps_api_key') || window.DJANGO_CONFIG.apiKeyFromSettings;
+            if (savedKey) {
+                document.getElementById('apiKeyInput').value = savedKey;
+                document.getElementById('api-key-btn-text').innerText = 'API Key Configured';
+            }
+        }
+
+        function openApiKeyModal() { document.getElementById('apiKeyModal').classList.remove('hidden'); }
+        function closeApiKeyModal() { document.getElementById('apiKeyModal').classList.add('hidden'); }
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (key) {
+                localStorage.setItem('google_maps_api_key', key);
+                location.reload();
+            } else {
+                closeApiKeyModal();
+            }
+        }
+        function clearSavedApiKey() {
+            localStorage.removeItem('google_maps_api_key');
+            document.getElementById('apiKeyInput').value = '';
+            location.reload();
+        }
+
+        // 5. Google Maps or Fallback Loader
+        function loadGoogleMapsOrFallback() {
+            const apiKey = localStorage.getItem('google_maps_api_key') || window.DJANGO_CONFIG.apiKeyFromSettings;
+            const badge = document.getElementById('mapEngineBadge');
+
+            if (apiKey && apiKey.length > 5) {
+                badge.innerText = 'Google Maps JS API';
+                badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 font-mono';
+                
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleMap`;
+                script.async = true;
+                script.defer = true;
+                script.onerror = () => { initSvgFallback(); };
+                window.initGoogleMap = initGoogleMap;
+                document.head.appendChild(script);
+            } else {
+                badge.innerText = 'GIS Vector Canvas (No Key)';
+                badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30 font-mono';
+                initSvgFallback();
+            }
+        }
+
+        function getDarkMapStyles() {
+            return [
+                { elementType: "geometry", stylers: [{ color: "#1e293b" }] },
+                { elementType: "labels.text.stroke", stylers: [{ color: "#0f172a" }] },
+                { elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
+                { featureType: "road", elementType: "geometry", stylers: [{ color: "#334155" }] },
+                { featureType: "water", elementType: "geometry", stylers: [{ color: "#090d16" }] },
+                { featureType: "poi", stylers: [{ visibility: "off" }] }
+            ];
+        }
+
+        function initGoogleMap() {
+            isGoogleMapsLoaded = true;
+            document.getElementById('svg-fallback-container').classList.add('hidden');
+            document.getElementById('map').classList.remove('hidden');
+
+            const center = currentRegion === 'bangladesh' ? { lat: 23.8103, lng: 90.4125 } : { lat: 23.7771, lng: 90.3995 };
+            const zoom = currentRegion === 'bangladesh' ? 7 : 12;
+
+            googleMap = new google.maps.Map(document.getElementById("map"), {
+                zoom: zoom,
+                center: center,
+                styles: isLightMode ? [] : getDarkMapStyles(),
+                disableDefaultUI: false,
+                zoomControl: true,
+            });
+
+            renderGoogleMapNodesAndNetwork();
+        }
+
+        function renderGoogleMapNodesAndNetwork() {
+            if (!googleMap) return;
+
+            Object.values(googleMarkers).forEach(m => m.setMap(null));
+            googleMarkers = {};
+            networkPolylines.forEach(p => p.setMap(null));
+            networkPolylines = [];
+
+            // Background highway edges
+            graphEdges.forEach(edge => {
+                const src = graphNodes[edge.source];
+                const dst = graphNodes[edge.destination];
+                if (src && dst) {
+                    const line = new google.maps.Polyline({
+                        path: [{ lat: src.lat, lng: src.lng }, { lat: dst.lat, lng: dst.lng }],
+                        geodesic: true,
+                        strokeColor: "#475569",
+                        strokeOpacity: 0.65,
+                        strokeWeight: 2,
+                        map: showNetworkLines ? googleMap : null
+                    });
+                    networkPolylines.push(line);
+                }
+            });
+
+            // District/Jela markers
+            Object.values(graphNodes).forEach(node => {
+                const marker = new google.maps.Marker({
+                    position: { lat: node.lat, lng: node.lng },
+                    map: googleMap,
+                    title: `${node.name} (${node.bn_name || ''}) - ${node.division || ''}`,
+                    label: {
+                        text: node.name.split(' ')[0],
+                        color: "#ffffff",
+                        fontSize: "11px",
+                        fontWeight: "bold"
+                    },
+                    icon: getMarkerIcon(node.code)
+                });
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="color: #0f172a; padding: 6px; font-family: sans-serif; max-width: 220px;">
+                            <h4 style="margin: 0 0 2px 0; font-size: 13px; font-weight: bold;">${node.name} ${node.bn_name ? ' / ' + node.bn_name : ''}</h4>
+                            <p style="margin: 0 0 4px 0; font-size: 11px; color: #0284c7; font-weight: bold;">Division: ${node.division || 'Dhaka'}</p>
+                            <p style="margin: 0 0 8px 0; font-size: 11px; color: #475569;">${node.description || 'Highway Network Jela'}</p>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="selectNodeAs('${node.code}', 'source')" style="background: #10b981; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">Origin (A)</button>
+                                <button onclick="selectNodeAs('${node.code}', 'dest')" style="background: #f43f5e; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">Target (B)</button>
+                            </div>
+                        </div>
+                    `
+                });
+
+                marker.addListener("click", () => infoWindow.open(googleMap, marker));
+                googleMarkers[node.code] = marker;
+            });
+
+            updateMarkerColors();
+        }
+
+        function getMarkerIcon(code, state = "normal") {
+            const srcCode = document.getElementById('sourceSelect').value;
+            const dstCode = document.getElementById('destSelect').value;
+
+            if (code === srcCode) {
+                return {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 17,
+                    fillColor: "#10b981",
+                    fillOpacity: 1,
+                    strokeColor: "#ffffff",
+                    strokeWeight: 3
+                };
+            } else if (code === dstCode) {
+                return {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    scale: 7,
+                    fillColor: "#f43f5e",
+                    fillOpacity: 1,
+                    strokeColor: "#ffffff",
+                    strokeWeight: 2
+                };
+            } else if (state === "exploring") {
+                return {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 15,
+                    fillColor: "#f59e0b",
+                    fillOpacity: 1,
+                    strokeColor: "#ffffff",
+                    strokeWeight: 3
+                };
+            }
+
+            return {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 12,
+                fillColor: "#0284c7",
+                fillOpacity: 0.9,
+                strokeColor: "#ffffff",
+                strokeWeight: 2
+            };
+        }
+
+        function updateMarkerColors() {
+            const srcCode = document.getElementById('sourceSelect').value;
+            const dstCode = document.getElementById('destSelect').value;
+
+            if (isGoogleMapsLoaded) {
+                Object.keys(googleMarkers).forEach(code => {
+                    googleMarkers[code].setIcon(getMarkerIcon(code));
+                });
+            } else {
+                renderSvgGraph();
+            }
+        }
+
+        // 6. SVG Canvas Fallback
+        function initSvgFallback() {
+            document.getElementById('map').classList.add('hidden');
+            document.getElementById('svg-fallback-container').classList.remove('hidden');
+            renderSvgGraph();
+            window.addEventListener('resize', renderSvgGraph);
+        }
+
+        function renderSvgGraph(highlightPath = [], exploringCode = null) {
+            const svg = document.getElementById('svgGraph');
+            if (!svg || Object.keys(graphNodes).length === 0) return;
+
+            svg.innerHTML = '';
+            const width = svg.clientWidth || 600;
+            const height = svg.clientHeight || 560;
+            const padding = 50;
+
+            const lats = Object.values(graphNodes).map(n => n.lat);
+            const lngs = Object.values(graphNodes).map(n => n.lng);
+            const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+            const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+
+            const mapX = lng => padding + ((lng - minLng) / (maxLng - minLng)) * (width - 2 * padding);
+            const mapY = lat => height - padding - ((lat - minLat) / (maxLat - minLat)) * (height - 2 * padding);
+
+            // Draw Edges
+            if (showNetworkLines) {
+                graphEdges.forEach(edge => {
+                    const u = graphNodes[edge.source];
+                    const v = graphNodes[edge.destination];
+                    if (u && v) {
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', mapX(u.lng));
+                        line.setAttribute('y1', mapY(u.lat));
+                        line.setAttribute('x2', mapX(v.lng));
+                        line.setAttribute('y2', mapY(v.lat));
+                        line.setAttribute('stroke', isLightMode ? '#94a3b8' : '#334155');
+                        line.setAttribute('stroke-width', '2');
+                        line.setAttribute('stroke-dasharray', '3,3');
+                        svg.appendChild(line);
+                    }
+                });
+            }
+
+            // Draw Route
+            if (highlightPath && highlightPath.length > 1) {
+                for (let i = 0; i < highlightPath.length - 1; i++) {
+                    const u = graphNodes[highlightPath[i]];
+                    const v = graphNodes[highlightPath[i+1]];
+                    if (u && v) {
+                        const pathLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        pathLine.setAttribute('x1', mapX(u.lng));
+                        pathLine.setAttribute('y1', mapY(u.lat));
+                        pathLine.setAttribute('x2', mapX(v.lng));
+                        pathLine.setAttribute('y2', mapY(v.lat));
+                        pathLine.setAttribute('stroke', '#10b981');
+                        pathLine.setAttribute('stroke-width', '6');
+                        pathLine.setAttribute('stroke-linecap', 'round');
+                        svg.appendChild(pathLine);
+                    }
+                }
+            }
+
+            // Draw Nodes
+            const srcCode = document.getElementById('sourceSelect').value;
+            const dstCode = document.getElementById('destSelect').value;
+
+            Object.values(graphNodes).forEach(node => {
+                const cx = mapX(node.lng);
+                const cy = mapY(node.lat);
+
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('class', 'cursor-pointer');
+                g.onclick = () => {
+                    if (!srcCode || (srcCode && dstCode)) selectNodeAs(node.code, 'source');
+                    else selectNodeAs(node.code, 'dest');
+                };
+
+                let fillColor = '#0284c7';
+                let r = '11';
+                let stroke = '#ffffff';
+
+                if (node.code === srcCode) {
+                    fillColor = '#10b981';
+                    r = '16';
+                } else if (node.code === dstCode) {
+                    fillColor = '#f43f5e';
+                    r = '16';
+                } else if (node.code === exploringCode) {
+                    fillColor = '#f59e0b';
+                    r = '15';
+                }
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', cx);
+                circle.setAttribute('cy', cy);
+                circle.setAttribute('r', r);
+                circle.setAttribute('fill', fillColor);
+                circle.setAttribute('stroke', stroke);
+                circle.setAttribute('stroke-width', '2.5');
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', cx);
+                text.setAttribute('y', cy + 4);
+                text.setAttribute('fill', '#ffffff');
+                text.setAttribute('font-size', '10px');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = node.code === srcCode ? 'A' : (node.code === dstCode ? 'B' : '');
+
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', cx);
+                label.setAttribute('y', cy - 14);
+                label.setAttribute('fill', isLightMode ? '#0f172a' : '#f1f5f9');
+                label.setAttribute('font-size', '11px');
+                label.setAttribute('font-weight', 'bold');
+                label.setAttribute('text-anchor', 'middle');
+                label.textContent = node.name.split(' ')[0];
+
+                g.appendChild(circle);
+                if (text.textContent) g.appendChild(text);
+                g.appendChild(label);
+                svg.appendChild(g);
+            });
+        }
+
+        function selectNodeAs(code, type) {
+            if (type === 'source') document.getElementById('sourceSelect').value = code;
+            else document.getElementById('destSelect').value = code;
+            updateMarkerColors();
+        }
+
+        document.getElementById('sourceSelect').addEventListener('change', updateMarkerColors);
+        document.getElementById('destSelect').addEventListener('change', updateMarkerColors);
+
+        function swapNodes() {
+            const src = document.getElementById('sourceSelect').value;
+            const dst = document.getElementById('destSelect').value;
+            document.getElementById('sourceSelect').value = dst;
+            document.getElementById('destSelect').value = src;
+            updateMarkerColors();
+        }
+
+        function toggleRoadNetwork() {
+            showNetworkLines = !showNetworkLines;
+            document.getElementById('toggleNetworkBtn').innerHTML = `<i class="fa-solid fa-network-wired mr-1"></i> Road Network: ${showNetworkLines ? 'ON' : 'OFF'}`;
+            if (isGoogleMapsLoaded) {
+                networkPolylines.forEach(p => p.setMap(showNetworkLines ? googleMap : null));
+            } else {
+                renderSvgGraph();
+            }
+        }
+
+        // 7. Route Computation (BFS, DFS, Dijkstra, A*, or Compare All)
+        async function calculateRoute() {
+            const source = document.getElementById('sourceSelect').value;
+            const destination = document.getElementById('destSelect').value;
+            const algorithm = document.querySelector('input[name="algorithm"]:checked').value;
+            const shouldAnimate = document.getElementById('animateToggle').checked;
+            const btn = document.getElementById('findRouteBtn');
+
+            if (!source || !destination) {
+                alert("Please select both Origin and Destination Jelas.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Computing...`;
+
+            try {
+                let handled = false;
+                if (window.location.protocol !== 'file:') {
+                    try {
+                        if (algorithm === 'compare') {
+                            const res = await fetch(`/api/compare/?source=${source}&destination=${destination}&region=${currentRegion}`);
+                            if (res.ok) {
+                                const data = await res.json();
+                                if (data.status === 'success') {
+                                    comparisonCache = data.comparison;
+                                    if (shouldAnimate) {
+                                        await playSearchAnimation(data.comparison.algorithms.a_star.explored_sequence);
+                                    }
+                                    display4WayComparison(data.comparison);
+                                    handled = true;
+                                }
+                            }
+                        } else {
+                            const res = await fetch(`/api/find-path/?source=${source}&destination=${destination}&algorithm=${algorithm}&region=${currentRegion}`);
+                            if (res.ok) {
+                                const data = await res.json();
+                                if (data.status === 'success') {
+                                    if (shouldAnimate) {
+                                        await playSearchAnimation(data.result.explored_sequence);
+                                    }
+                                    displaySingleResult(data.result);
+                                    handled = true;
+                                }
+                            }
+                        }
+                    } catch (netErr) {
+                        console.warn("Backend fetch failed, activating client-side pathfinder fallback:", netErr);
+                    }
+                }
+
+                if (!handled) {
+                    // Client-Side Algorithm Fallback Engine
+                    if (algorithm === 'compare') {
+                        const comparison = runClientSideComparison(source, destination);
+                        comparisonCache = comparison;
+                        if (shouldAnimate) {
+                            await playSearchAnimation(comparison.algorithms.a_star.explored_sequence);
+                        }
+                        display4WayComparison(comparison);
+                    } else {
+                        const result = runClientSideSingle(source, destination, algorithm);
+                        if (shouldAnimate) {
+                            await playSearchAnimation(result.explored_sequence);
+                        }
+                        displaySingleResult(result);
+                    }
+                }
+            } catch (err) {
+                console.error("Routing calculation error:", err);
+                alert("Calculation error: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> Compute Path`;
+            }
+        }
+
+        // Search Animation Player
+        async function playSearchAnimation(sequence) {
+            if (!sequence || sequence.length <= 1) return;
+            const badge = document.getElementById('animationStatusBadge');
+            const nodeText = document.getElementById('animCurrentNodeText');
+            badge.classList.remove('hidden');
+
+            for (let i = 0; i < sequence.length; i++) {
+                const code = sequence[i];
+                const node = graphNodes[code];
+                nodeText.innerText = `${i + 1}/${sequence.length}: ${node ? node.name : code}`;
+
+                if (isGoogleMapsLoaded && googleMarkers[code]) {
+                    googleMarkers[code].setIcon(getMarkerIcon(code, "exploring"));
+                } else {
+                    renderSvgGraph([], code);
+                }
+
+                await new Promise(r => setTimeout(r, 110));
+            }
+
+            badge.classList.add('hidden');
+            updateMarkerColors();
+        }
+
+        function renderPathOnMap(coords, pathCodes) {
+            if (isGoogleMapsLoaded && googleMap) {
+                if (activePolyline) activePolyline.setMap(null);
+
+                const pathLatLng = coords.map(c => ({ lat: c.lat, lng: c.lng }));
+                activePolyline = new google.maps.Polyline({
+                    path: pathLatLng,
+                    geodesic: true,
+                    strokeColor: "#10b981",
+                    strokeOpacity: 0.95,
+                    strokeWeight: 6
+                });
+
+                activePolyline.setMap(googleMap);
+                const bounds = new google.maps.LatLngBounds();
+                pathLatLng.forEach(pt => bounds.extend(pt));
+                googleMap.fitBounds(bounds, 60);
+            } else {
+                renderSvgGraph(pathCodes);
+            }
+        }
+
+        
+                // --- Client-Side Pathfinding Algorithm Fallback Engine (for file:// protocol) ---
+        function haversineKm(lat1, lon1, lat2, lon2) {
+            const R = 6371.0;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function runClientSideSingle(source, destination, algo) {
+            const t0 = performance.now();
+            const adj = {};
+            Object.keys(graphNodes).forEach(k => { adj[k] = []; });
+            graphEdges.forEach(e => {
+                if (adj[e.source]) adj[e.source].push({ node: e.destination, dist: e.distance_km });
+                if (e.is_bidirectional && adj[e.destination]) adj[e.destination].push({ node: e.source, dist: e.distance_km });
+            });
+
+            let path = [];
+            let explored = [];
+            
+            if (algo === 'bfs') {
+                const queue = [source];
+                const visited = new Set([source]);
+                const parent = {};
+                while (queue.length > 0) {
+                    const curr = queue.shift();
+                    explored.push(curr);
+                    if (curr === destination) break;
+                    for (const neighbor of (adj[curr] || [])) {
+                        if (!visited.has(neighbor.node)) {
+                            visited.add(neighbor.node);
+                            parent[neighbor.node] = curr;
+                            queue.push(neighbor.node);
+                        }
+                    }
+                }
+                if (visited.has(destination)) {
+                    let curr = destination;
+                    while (curr) { path.unshift(curr); curr = parent[curr]; }
+                }
+            } else if (algo === 'dfs') {
+                const stack = [source];
+                const visited = new Set();
+                const parent = {};
+                while (stack.length > 0) {
+                    const curr = stack.pop();
+                    if (!visited.has(curr)) {
+                        visited.add(curr);
+                        explored.push(curr);
+                        if (curr === destination) break;
+                        for (const neighbor of (adj[curr] || [])) {
+                            if (!visited.has(neighbor.node)) {
+                                parent[neighbor.node] = curr;
+                                stack.push(neighbor.node);
+                            }
+                        }
+                    }
+                }
+                if (visited.has(destination)) {
+                    let curr = destination;
+                    while (curr) { path.unshift(curr); curr = parent[curr]; }
+                }
+            } else if (algo === 'dijkstra' || algo === 'a_star') {
+                const dist = {};
+                const parent = {};
+                const unvisited = new Set(Object.keys(graphNodes));
+                Object.keys(graphNodes).forEach(k => { dist[k] = Infinity; });
+                dist[source] = 0;
+
+                const destNode = graphNodes[destination];
+
+                while (unvisited.size > 0) {
+                    let minNode = null;
+                    let minScore = Infinity;
+                    for (const n of unvisited) {
+                        if (dist[n] < Infinity) {
+                            let score = dist[n];
+                            if (algo === 'a_star' && destNode && graphNodes[n]) {
+                                const h = haversineKm(graphNodes[n].lat, graphNodes[n].lng, destNode.lat, destNode.lng);
+                                score += h;
+                            }
+                            if (score < minScore) {
+                                minScore = score;
+                                minNode = n;
+                            }
+                        }
+                    }
+
+                    if (!minNode || dist[minNode] === Infinity) break;
+                    unvisited.delete(minNode);
+                    explored.push(minNode);
+                    if (minNode === destination) break;
+
+                    for (const edge of (adj[minNode] || [])) {
+                        if (unvisited.has(edge.node)) {
+                            const newDist = dist[minNode] + edge.dist;
+                            if (newDist < dist[edge.node]) {
+                                dist[edge.node] = newDist;
+                                parent[edge.node] = minNode;
+                            }
+                        }
+                    }
+                }
+
+                if (dist[destination] < Infinity) {
+                    let curr = destination;
+                    while (curr) { path.unshift(curr); curr = parent[curr]; }
+                }
+            }
+
+            const t1 = performance.now();
+            const execTime = Math.max(0.12, t1 - t0);
+
+            let totalKm = 0;
+            const itinerary = [];
+            const routeCoords = [];
+
+            for (let i = 0; i < path.length; i++) {
+                const code = path[i];
+                const n = graphNodes[code];
+                let segKm = 0;
+                if (i > 0) {
+                    const pCode = path[i - 1];
+                    const pNode = graphNodes[pCode];
+                    const edge = (adj[pCode] || []).find(e => e.node === code);
+                    segKm = edge ? edge.dist : haversineKm(pNode.lat, pNode.lng, n.lat, n.lng);
+                    totalKm += segKm;
+                }
+                if (n) {
+                    routeCoords.push({ lat: n.lat, lng: n.lng, name: n.name, code: code });
+                    itinerary.push({
+                        step: i + 1,
+                        code: code,
+                        name: n.name,
+                        bn_name: n.bn_name || '',
+                        division: n.division || '',
+                        lat: n.lat,
+                        lng: n.lng,
+                        segment_distance_km: Math.round(segKm * 10) / 10,
+                        cumulative_distance_km: Math.round(totalKm * 10) / 10
+                    });
+                }
+            }
+
+            return {
+                algorithm: algo === 'a_star' ? "A* (A-Star) Search" : (algo === 'dijkstra' ? "Dijkstra’s Algorithm" : (algo === 'bfs' ? "BFS (Breadth-First Search)" : "DFS (Depth-First Search)")),
+                algo_key: algo,
+                success: path.length > 0,
+                path: path,
+                hops: Math.max(0, path.length - 1),
+                total_distance_km: Math.round(totalKm * 10) / 10,
+                execution_time_ms: execTime,
+                explored_sequence: explored,
+                nodes_explored: explored.length,
+                route_coordinates: routeCoords,
+                itinerary: itinerary,
+                short_name: algo === 'a_star' ? 'A*' : (algo === 'dijkstra' ? 'Dijkstra' : algo.toUpperCase()),
+                characteristics: algo === 'a_star' ? 'Heuristic-directed optimal road routing' : (algo === 'dijkstra' ? 'Uniform-cost search guaranteeing absolute shortest path' : (algo === 'bfs' ? 'Unweighted search guaranteeing fewest segment hops' : 'Deep recursive traversal showing detour behavior'))
+            };
+        }
+
+        function runClientSideComparison(source, destination) {
+            const algos = ['bfs', 'dfs', 'dijkstra', 'a_star'];
+            const results = {};
+            algos.forEach(a => {
+                results[a] = runClientSideSingle(source, destination, a);
+            });
+
+            const optDist = results['a_star'].total_distance_km || results['dijkstra'].total_distance_km;
+            const savedNodes = Math.max(0, results['dijkstra'].nodes_explored - results['a_star'].nodes_explored);
+            const dfsExcess = Math.max(0, Math.round((results['dfs'].total_distance_km - optDist) * 10) / 10);
+
+            return {
+                start: { name: graphNodes[source] ? graphNodes[source].name : source, code: source },
+                goal: { name: graphNodes[destination] ? graphNodes[destination].name : destination, code: destination },
+                total_network_nodes: Object.keys(graphNodes).length || 32,
+                algorithms: results,
+                summary: {
+                    optimal_distance_km: optDist,
+                    astar_nodes_saved: savedNodes,
+                    dfs_excess_distance_km: dfsExcess
+                }
+            };
+        }
+
+        // 8. Display Single Algorithm Result
+        function displaySingleResult(result) {
+            document.getElementById('resultsSection').classList.remove('hidden');
+            document.getElementById('singleResultsPanel').classList.remove('hidden');
+            document.getElementById('comparisonResultsPanel').classList.add('hidden');
+
+            renderPathOnMap(result.route_coordinates, result.path);
+
+            document.getElementById('resAlgorithmName').innerText = `${result.algorithm} Result`;
+            document.getElementById('resHopCount').innerText = `Path Length: ${result.path.length} Jelas (${result.hops || result.path.length - 1} Highway Hops)`;
+            document.getElementById('resTotalDistance').innerText = `${result.total_distance_km} km`;
+            document.getElementById('resDistanceMeters').innerText = `(${Math.round(result.total_distance_km * 1000)} meters)`;
+            document.getElementById('resExecutionTime').innerText = `${result.execution_time_ms.toFixed(4)} ms`;
+            
+            const totalNodes = Object.keys(graphNodes).length || 32;
+            const pct = Math.round((result.nodes_explored / totalNodes) * 100);
+            document.getElementById('resNodesExplored').innerText = `${result.nodes_explored} / ${totalNodes}`;
+            document.getElementById('resExploredPercent').innerText = `${pct}% search space traversed`;
+            document.getElementById('resEfficiency').innerText = result.short_name === 'DFS' ? 'Suboptimal Detour' : (result.short_name === 'BFS' ? 'Least Segment Hops' : 'Shortest Road Distance');
+            document.getElementById('resCharNotes').innerText = result.characteristics || 'Verified routing';
+
+            // Route Overlay
+            document.getElementById('routeOverlay').classList.remove('hidden');
+            document.getElementById('overlayAlgoTitle').innerText = `${result.algorithm}`;
+            document.getElementById('overlayDistance').innerText = `${result.total_distance_km} km`;
+            document.getElementById('overlayNodesCount').innerText = `${result.nodes_explored} nodes visited in ${result.execution_time_ms.toFixed(3)} ms`;
+
+            // Itinerary Table
+            const tbody = document.getElementById('itineraryTableBody');
+            tbody.innerHTML = '';
+            result.itinerary.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/80 transition';
+                tr.innerHTML = `
+                    <td class="py-2.5 px-4 font-mono font-bold text-emerald-400">#${item.step}</td>
+                    <td class="py-2.5 px-4 font-semibold text-white">${item.code}</td>
+                    <td class="py-2.5 px-4 text-slate-200 font-bold">${item.name} ${item.bn_name ? ' / ' + item.bn_name : ''}</td>
+                    <td class="py-2.5 px-4 text-slate-300 font-semibold">${item.division || 'Dhaka'}</td>
+                    <td class="py-2.5 px-4 font-mono text-slate-400 text-xs">${item.lat.toFixed(4)}, ${item.lng.toFixed(4)}</td>
+                    <td class="py-2.5 px-4 text-right text-slate-200 font-mono">${item.segment_distance_km > 0 ? '+' + item.segment_distance_km + ' km' : 'Start'}</td>
+                    <td class="py-2.5 px-4 text-right font-bold text-emerald-400 font-mono">${item.cumulative_distance_km} km</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 9. Display 4-Way Comparison (BFS, DFS, Dijkstra, A*)
+        function display4WayComparison(comp) {
+            document.getElementById('resultsSection').classList.remove('hidden');
+            document.getElementById('singleResultsPanel').classList.add('hidden');
+            document.getElementById('comparisonResultsPanel').classList.remove('hidden');
+
+            const algos = comp.algorithms;
+            const optimalDist = comp.summary.optimal_distance_km;
+
+            // Draw A* path on map as default
+            renderPathOnMap(algos.a_star.route_coordinates, algos.a_star.path);
+
+            document.getElementById('compOriginDestSummary').innerText = `${comp.start.name} (${comp.start.code})  ➝  ${comp.goal.name} (${comp.goal.code})`;
+
+            // Populate 4-way table
+            const tbody = document.getElementById('compTableBody');
+            tbody.innerHTML = '';
+
+            const list = [
+                { key: 'a_star', name: 'A* Search', badge: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40', opt: 'Global Minimum Distance (Fastest)' },
+                { key: 'dijkstra', name: 'Dijkstra’s Algorithm', badge: 'bg-sky-500/20 text-sky-300 border border-sky-500/40', opt: 'Global Minimum Distance (Exhaustive)' },
+                { key: 'bfs', name: 'BFS (Breadth-First)', badge: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40', opt: 'Minimum Segment Hops' },
+                { key: 'dfs', name: 'DFS (Depth-First)', badge: 'bg-rose-500/20 text-rose-300 border border-rose-500/40', opt: 'Non-Optimal (Deep Traversal Detour)' }
+            ];
+
+            list.forEach(item => {
+                const res = algos[item.key];
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/80 transition';
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
+                        <span class="px-2 py-0.5 rounded text-[11px] font-mono ${item.badge}">${item.name}</span>
+                    </td>
+                    <td class="py-3 px-4 font-mono font-bold ${res.total_distance_km === optimalDist ? 'text-emerald-400' : 'text-amber-400'}">${res.total_distance_km} km</td>
+                    <td class="py-3 px-4 font-mono text-slate-300">${res.hops} hops</td>
+                    <td class="py-3 px-4 font-mono font-bold text-purple-400">${res.nodes_explored} nodes</td>
+                    <td class="py-3 px-4 font-mono text-sky-400">${res.execution_time_ms.toFixed(4)} ms</td>
+                    <td class="py-3 px-4 text-xs font-semibold text-slate-300">${item.opt}</td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="previewSpecificPath('${item.key}')" class="px-2.5 py-1 rounded bg-slate-700 hover:bg-emerald-600 text-xs font-bold text-white transition">
+                            View on Map
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update 4 Comparison Progress Bars
+            const total = comp.total_network_nodes || 32;
+            ['dijkstra', 'a_star', 'bfs', 'dfs'].forEach(k => {
+                const res = algos[k];
+                const pct = Math.min(100, Math.round((res.nodes_explored / total) * 100));
+                const bar = document.getElementById(`bar-${k}`);
+                const text = document.getElementById(`barText-${k}`);
+                if (bar) bar.style.width = `${pct}%`;
+                if (text) text.innerText = `${res.nodes_explored} of ${total} Jelas (${pct}% search space)`;
+            });
+
+            // Summary Badges & Insight
+            document.getElementById('compDistMatchBadge').innerText = `Optimal Distance: ${optimalDist} km`;
+            document.getElementById('compAStarSavedBadge').innerText = `A* saved ${comp.summary.astar_nodes_saved} node inspections`;
+
+            const insight = `A* directed search explored only ${algos.a_star.nodes_explored} nodes compared to Dijkstra (${algos.dijkstra.nodes_explored} nodes) and BFS (${algos.bfs.nodes_explored} nodes), saving ${comp.summary.astar_nodes_saved} evaluations while guaranteeing the global minimum road distance of ${optimalDist} km. Meanwhile, DFS traversed ${algos.dfs.hops} hops taking a detour of +${comp.summary.dfs_excess_distance_km} km.`;
+            document.getElementById('compInsightText').innerText = insight;
+
+            // Route Overlay
+            document.getElementById('routeOverlay').classList.remove('hidden');
+            document.getElementById('overlayAlgoTitle').innerText = `4-Way Comparison Completed`;
+            document.getElementById('overlayDistance').innerText = `Optimal: ${optimalDist} km`;
+            document.getElementById('overlayNodesCount').innerText = `A* saved ${comp.summary.astar_nodes_saved} node checks`;
+
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Preview a specific algorithm's path from the 4-way comparison
+        function previewSpecificPath(algoKey) {
+            if (!comparisonCache || !comparisonCache.algorithms[algoKey]) return;
+            const res = comparisonCache.algorithms[algoKey];
+            renderPathOnMap(res.route_coordinates, res.path);
+
+            document.getElementById('overlayAlgoTitle').innerText = `${res.algorithm} Path`;
+            document.getElementById('overlayDistance').innerText = `${res.total_distance_km} km (${res.hops} hops)`;
+            document.getElementById('overlayNodesCount').innerText = `${res.nodes_explored} nodes visited`;
+        }
+
+        function resetRoute() {
+            if (activePolyline) {
+                activePolyline.setMap(null);
+                activePolyline = null;
+            }
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('routeOverlay').classList.add('hidden');
+            document.getElementById('animationStatusBadge').classList.add('hidden');
+            comparisonCache = null;
+            if (isGoogleMapsLoaded) {
+                updateMarkerColors();
+            } else {
+                renderSvgGraph();
+            }
+        }
+    </script>
+</body>
+</html>

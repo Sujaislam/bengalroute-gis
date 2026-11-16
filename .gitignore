@@ -1,0 +1,28 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+env/
+venv/
+ENV/
+.env
+
+# Logs and databases
+*.log
+*.pot
+
+# IDEs & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary test files
+test_*.py
+test_*.html
+patch_*.py
+verify_*.py
+get_element_coords.py
+measure_dom_rects.py
