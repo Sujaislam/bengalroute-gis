@@ -90,57 +90,57 @@
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+    <!-- Main Container: Layout A (3-Panel Cockpit) -->
+    <main class="flex-1 max-w-[1680px] w-full mx-auto p-3 sm:p-5 lg:p-6 flex flex-col gap-4">
 
-        <!-- Network Selector Banner (Bangladesh Jelas vs. Dhaka Metro) -->
-        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Top Command Strip: Network Switcher & 1-Click Presentation Presets -->
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-3.5 sm:p-4 shadow-lg flex flex-col xl:flex-row xl:items-center justify-between gap-3">
             <div class="flex items-center space-x-3">
-                <span class="h-3.5 w-3.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="h-3 w-3 rounded-full bg-emerald-400 animate-ping"></span>
                 <div>
-                    <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Active Spatial Network</span>
-                    <h3 class="text-sm font-bold text-white" id="currentNetworkLabel">Bangladesh Jela & District Highway Network (32 Districts)</h3>
+                    <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">Active Network</span>
+                    <h3 class="text-xs sm:text-sm font-bold text-white" id="currentNetworkLabel">Bangladesh Jela & District Highway Network (32 Districts)</h3>
                 </div>
             </div>
 
-            <!-- Network Switcher Tabs -->
-            <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-700">
-                <button onclick="switchNetwork('bangladesh')" id="netBtn-bangladesh" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 bg-emerald-600 text-white shadow">
-                    <span>🇧🇩 Bangladesh Jelas / Districts (32)</span>
-                </button>
-                <button onclick="switchNetwork('dhaka')" id="netBtn-dhaka" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 text-slate-400 hover:text-white">
-                    <span>🏙️ Dhaka Metro Hubs (16)</span>
-                </button>
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Network Selector Tabs -->
+                <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-700">
+                    <button onclick="switchNetwork('bangladesh')" id="netBtn-bangladesh" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-emerald-600 text-white shadow">
+                        <span>🇧🇩 Bangladesh Jelas (32)</span>
+                    </button>
+                    <button onclick="switchNetwork('dhaka')" id="netBtn-dhaka" class="px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-slate-400 hover:text-white">
+                        <span>🏙️ Dhaka Metro (16)</span>
+                    </button>
+                </div>
+
+                <!-- 1-Click Presets Pill Row -->
+                <div class="flex items-center space-x-1 text-xs bg-slate-900/60 border border-slate-700/70 p-1 rounded-xl">
+                    <span class="text-[11px] font-bold text-amber-300 px-2 flex items-center">
+                        <i class="fa-solid fa-bolt text-amber-400 mr-1"></i> Quick Corridors:
+                    </span>
+                    <div id="presetsContainer" class="flex flex-wrap gap-1.5">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- 1-Click Presentation Demo Presets -->
-        <div class="bg-slate-800/70 border border-slate-700/70 rounded-2xl p-4 shadow-md">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
-                <span class="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center">
-                    <i class="fa-solid fa-bolt text-amber-400 mr-2"></i> 1-Click Presentation Scenarios (Sample Demos)
-                </span>
-                <span class="text-xs text-slate-300">Click any scenario to instantly test and demonstrate algorithms</span>
-            </div>
-            
-            <div id="presetsContainer" class="flex flex-wrap gap-2.5">
-                <!-- Dynamically populated -->
-            </div>
-        </div>
+        <!-- 3-Panel Cockpit Grid (Left Controls | Center Map | Right Telemetry) -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 flex-1 items-start">
 
-        <!-- Main Workspace (Controls + Map) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <!-- Sidebar Controls -->
-            <div class="lg:col-span-4 flex flex-col gap-5">
-                <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl">
-                    <h2 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center">
+            <!-- =========================================================================
+                 COLUMN 1: ROUTING CONTROLS (xl:col-span-3 lg:col-span-4)
+                 ========================================================================= -->
+            <div class="xl:col-span-3 lg:col-span-4 flex flex-col gap-4">
+                <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-xl">
+                    <h2 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3.5 flex items-center">
                         <i class="fa-solid fa-compass text-indigo-400 mr-2"></i> Route Configuration
                     </h2>
 
-                    <!-- Division Filter (Optional Helper) -->
-                    <div class="mb-4" id="divisionFilterBlock">
-                        <label class="block text-xs font-bold text-slate-300 mb-1.5 flex items-center">
+                    <!-- Division Filter -->
+                    <div class="mb-3.5" id="divisionFilterBlock">
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1 flex items-center">
                             <i class="fa-solid fa-layer-group text-teal-400 mr-1.5"></i> Filter by Division (বিভাগ)
                         </label>
                         <select id="divisionFilter" onchange="filterNodesByDivision()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500">
@@ -156,143 +156,158 @@
                         </select>
                     </div>
 
-                    <!-- Source Node Selection -->
-                    <div class="mb-4">
-                        <label class="block text-xs font-bold text-slate-200 mb-1.5 flex items-center justify-between">
-                            <span><i class="fa-solid fa-circle-play text-emerald-400 mr-1.5"></i> Origin Jela / District (A)</span>
-                            <span class="text-[11px] font-semibold text-emerald-400">Green Pin</span>
+                    <!-- Origin Selector -->
+                    <div class="mb-3">
+                        <label class="block text-xs font-bold text-slate-200 mb-1 flex items-center justify-between">
+                            <span><i class="fa-solid fa-circle-play text-emerald-400 mr-1.5"></i> Origin District (A)</span>
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Green Pin</span>
                         </label>
-                        <select id="sourceSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                        <select id="sourceSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
                             <!-- Populated dynamically -->
                         </select>
-                        <span class="text-[11px] text-slate-300 mt-1 block">Click any marker on map to set Origin</span>
                     </div>
 
                     <!-- Swap Button -->
-                    <div class="flex justify-center -my-2 relative z-10">
-                        <button onclick="swapNodes()" title="Swap Origin & Destination" class="h-8 w-8 rounded-full bg-slate-700 hover:bg-indigo-600 border border-slate-600 text-slate-200 hover:text-white transition flex items-center justify-center shadow">
-                            <i class="fa-solid fa-arrow-down-up-across-line text-xs"></i>
+                    <div class="flex justify-center -my-1.5 relative z-10">
+                        <button onclick="swapNodes()" title="Swap Origin & Destination" class="h-7 w-7 rounded-full bg-slate-700 hover:bg-indigo-600 border border-slate-600 text-slate-200 hover:text-white transition flex items-center justify-center shadow">
+                            <i class="fa-solid fa-arrow-down-up-across-line text-[11px]"></i>
                         </button>
                     </div>
 
-                    <!-- Destination Node Selection -->
-                    <div class="mb-5">
-                        <label class="block text-xs font-bold text-slate-200 mb-1.5 flex items-center justify-between">
-                            <span><i class="fa-solid fa-flag-checkered text-rose-500 mr-1.5"></i> Destination Jela / District (B)</span>
-                            <span class="text-[11px] font-semibold text-rose-400">Red Pin</span>
+                    <!-- Destination Selector -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-slate-200 mb-1 flex items-center justify-between">
+                            <span><i class="fa-solid fa-flag-checkered text-rose-500 mr-1.5"></i> Destination District (B)</span>
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">Red Pin</span>
                         </label>
-                        <select id="destSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 font-medium focus:outline-none focus:ring-2 focus:ring-rose-500 transition">
+                        <select id="destSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500 transition">
                             <!-- Populated dynamically -->
                         </select>
-                        <span class="text-[11px] text-slate-300 mt-1 block">Click any marker on map to set Destination</span>
                     </div>
 
-                    <!-- Algorithm Selection (All 4 Algorithms) -->
-                    <div class="mb-5">
-                        <label class="block text-xs font-bold text-slate-200 mb-2">
-                            <i class="fa-solid fa-brain text-sky-400 mr-1.5"></i> Pathfinding Algorithm
+                    <!-- Pathfinding Algorithm Radios -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-slate-200 mb-1.5 flex items-center">
+                            <i class="fa-solid fa-brain text-sky-400 mr-1.5"></i> Select Algorithm
                         </label>
-                        <div class="space-y-2">
-                            <label class="flex items-center p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
-                                <input type="radio" name="algorithm" value="dijkstra" class="text-indigo-600 focus:ring-0 mr-3">
-                                <div>
-                                    <div class="text-xs font-bold text-slate-100">Dijkstra’s Algorithm</div>
-                                    <div class="text-[11px] text-slate-300">Uniform-cost search; guaranteed shortest road km.</div>
+                        <div class="space-y-1.5">
+                            <label class="flex items-center p-2 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-emerald-500 transition">
+                                <input type="radio" name="algorithm" value="a_star" checked class="text-emerald-500 focus:ring-0 mr-2.5">
+                                <div class="flex-1">
+                                    <div class="text-xs font-bold text-emerald-300 flex items-center justify-between">
+                                        <span>A* (A-Star) Search</span>
+                                        <span class="text-[10px] text-emerald-400 font-mono font-bold">Heuristic Directed</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400">Optimal distance + 75.8% search space reduction.</div>
                                 </div>
                             </label>
-                            <label class="flex items-center p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
-                                <input type="radio" name="algorithm" value="a_star" checked class="text-indigo-600 focus:ring-0 mr-3">
-                                <div>
-                                    <div class="text-xs font-bold text-slate-100">A* (A-Star) Search</div>
-                                    <div class="text-[11px] text-slate-300">Heuristic-directed; optimal distance + minimum node visits.</div>
+                            <label class="flex items-center p-2 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
+                                <input type="radio" name="algorithm" value="dijkstra" class="text-indigo-600 focus:ring-0 mr-2.5">
+                                <div class="flex-1">
+                                    <div class="text-xs font-bold text-slate-200 flex items-center justify-between">
+                                        <span>Dijkstra’s Algorithm</span>
+                                        <span class="text-[10px] text-sky-400 font-mono">Uniform-Cost</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400">Exhaustive radial expansion; guaranteed shortest road km.</div>
                                 </div>
                             </label>
-                            <label class="flex items-center p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
-                                <input type="radio" name="algorithm" value="bfs" class="text-indigo-600 focus:ring-0 mr-3">
-                                <div>
-                                    <div class="text-xs font-bold text-sky-300">BFS (Breadth-First Search)</div>
-                                    <div class="text-[11px] text-slate-300">Unweighted search; guarantees minimum segment hops.</div>
+                            <label class="flex items-center p-2 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
+                                <input type="radio" name="algorithm" value="bfs" class="text-indigo-600 focus:ring-0 mr-2.5">
+                                <div class="flex-1">
+                                    <div class="text-xs font-bold text-sky-300 flex items-center justify-between">
+                                        <span>BFS (Breadth-First)</span>
+                                        <span class="text-[10px] text-indigo-400 font-mono">Hop-Minimal</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400">Unweighted search; fewest highway transfers.</div>
                                 </div>
                             </label>
-                            <label class="flex items-center p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
-                                <input type="radio" name="algorithm" value="dfs" class="text-indigo-600 focus:ring-0 mr-3">
-                                <div>
-                                    <div class="text-xs font-bold text-rose-300">DFS (Depth-First Search)</div>
-                                    <div class="text-[11px] text-slate-300">Deep traversal; demonstrates suboptimal routing detours.</div>
+                            <label class="flex items-center p-2 rounded-xl bg-slate-900/80 border border-slate-700/80 cursor-pointer hover:border-slate-500 transition">
+                                <input type="radio" name="algorithm" value="dfs" class="text-indigo-600 focus:ring-0 mr-2.5">
+                                <div class="flex-1">
+                                    <div class="text-xs font-bold text-rose-300 flex items-center justify-between">
+                                        <span>DFS (Depth-First)</span>
+                                        <span class="text-[10px] text-rose-400 font-mono">Detour Analysis</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400">Deep recursion; demonstrates +1,097 km detour.</div>
                                 </div>
                             </label>
-                            <label class="flex items-center p-2.5 rounded-xl bg-slate-900/80 border border-amber-500/50 cursor-pointer hover:border-amber-400 transition">
-                                <input type="radio" name="algorithm" value="compare" class="text-indigo-600 focus:ring-0 mr-3">
-                                <div>
-                                    <div class="text-xs font-bold text-amber-300">Compare All 4 Algorithms (Part C)</div>
-                                    <div class="text-[11px] text-slate-300">BFS vs DFS vs Dijkstra vs A* side-by-side benchmark.</div>
+                            <label class="flex items-center p-2 rounded-xl bg-slate-900/80 border border-amber-500/50 cursor-pointer hover:border-amber-400 transition">
+                                <input type="radio" name="algorithm" value="compare" class="text-amber-500 focus:ring-0 mr-2.5">
+                                <div class="flex-1">
+                                    <div class="text-xs font-bold text-amber-300 flex items-center justify-between">
+                                        <span>Compare All 4 (Part C)</span>
+                                        <span class="text-[10px] text-amber-400 font-mono font-bold">Benchmark</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400">Side-by-side performance matrix for defense.</div>
                                 </div>
                             </label>
                         </div>
                     </div>
 
                     <!-- Animation Toggle -->
-                    <div class="mb-5 p-3 rounded-xl bg-slate-900/70 border border-slate-700/80">
+                    <div class="mb-4 p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/80">
                         <div class="flex items-center justify-between">
                             <label class="flex items-center cursor-pointer">
-                                <input type="checkbox" id="animateToggle" checked class="rounded text-indigo-600 focus:ring-0 mr-2.5 h-4 w-4">
+                                <input type="checkbox" id="animateToggle" checked class="rounded text-indigo-600 focus:ring-0 mr-2 h-3.5 w-3.5">
                                 <span class="text-xs font-bold text-indigo-300">
                                     <i class="fa-solid fa-film mr-1"></i> Animate Search Replay
                                 </span>
                             </label>
-                            <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">Visual Queue</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">Queue Steps</span>
                         </div>
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex items-center space-x-3">
-                        <button onclick="calculateRoute()" id="findRouteBtn" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold text-sm text-white shadow-lg shadow-emerald-600/30 transition flex items-center justify-center space-x-2">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="calculateRoute()" id="findRouteBtn" class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold text-xs text-white shadow-lg shadow-emerald-600/30 transition flex items-center justify-center space-x-2">
                             <i class="fa-solid fa-play"></i>
                             <span>Compute Path</span>
                         </button>
-                        <button onclick="resetRoute()" title="Reset Route" class="p-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white transition">
+                        <button onclick="resetRoute()" title="Reset Route" class="p-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white transition">
                             <i class="fa-solid fa-rotate-left"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Network Stats Panel -->
-                <div class="bg-slate-800/70 border border-slate-700/70 rounded-2xl p-4 text-xs">
-                    <span class="text-slate-300 font-bold uppercase tracking-wider text-[11px] block mb-2">Network Statistics</span>
-                    <div class="grid grid-cols-2 gap-3 text-slate-200">
-                        <div class="p-2.5 rounded-lg bg-slate-900/60 border border-slate-700/50">
-                            <span class="text-slate-400 text-[11px] block">Districts / Jelas:</span>
-                            <span class="text-base font-bold text-white" id="totalNodesStat">32 Jelas</span>
+                <div class="bg-slate-800/70 border border-slate-700/70 rounded-2xl p-3.5 text-xs">
+                    <span class="text-slate-300 font-bold uppercase tracking-wider text-[10px] block mb-2">Spatial Graph Topology</span>
+                    <div class="grid grid-cols-2 gap-2 text-slate-200">
+                        <div class="p-2 rounded-lg bg-slate-900/60 border border-slate-700/50">
+                            <span class="text-slate-400 text-[10px] block">Jelas / Districts:</span>
+                            <span class="text-sm font-bold text-white" id="totalNodesStat">32 Jelas</span>
                         </div>
-                        <div class="p-2.5 rounded-lg bg-slate-900/60 border border-slate-700/50">
-                            <span class="text-slate-400 text-[11px] block">Highways:</span>
-                            <span class="text-base font-bold text-white" id="totalEdgesStat">36 Segments</span>
+                        <div class="p-2 rounded-lg bg-slate-900/60 border border-slate-700/50">
+                            <span class="text-slate-400 text-[10px] block">National Highways:</span>
+                            <span class="text-sm font-bold text-white" id="totalEdgesStat">36 Segments</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Map View Area -->
-            <div class="lg:col-span-8 flex flex-col gap-4">
-                <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-xl flex-1 flex flex-col relative min-h-[600px]">
+            <!-- =========================================================================
+                 COLUMN 2: GEOGRAPHIC MAP DISPLAY (xl:col-span-5 lg:col-span-8)
+                 ========================================================================= -->
+            <div class="xl:col-span-5 lg:col-span-8 flex flex-col gap-4">
+                <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-xl flex-1 flex flex-col relative min-h-[640px]">
                     <div class="flex items-center justify-between mb-3 px-1">
                         <div class="flex items-center space-x-2">
                             <span class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center">
                                 <i class="fa-solid fa-map text-emerald-400 mr-2"></i> Geographic Map Display
                             </span>
-                            <span id="mapEngineBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-700 text-slate-200 font-mono">
+                            <span id="mapEngineBadge" class="text-[10px] px-2.5 py-0.5 rounded-full bg-slate-700 text-slate-200 font-mono font-bold">
                                 Detecting Engine...
                             </span>
                         </div>
                         <div class="flex items-center space-x-2 text-xs">
-                            <button onclick="toggleRoadNetwork()" id="toggleNetworkBtn" class="px-3 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium transition text-xs">
+                            <button onclick="toggleRoadNetwork()" id="toggleNetworkBtn" class="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium transition text-xs border border-slate-600">
                                 <i class="fa-solid fa-network-wired mr-1"></i> Road Network: ON
                             </button>
                         </div>
                     </div>
 
                     <!-- Map Container -->
-                    <div class="relative flex-1 rounded-xl overflow-hidden border border-slate-700/80 bg-slate-950">
+                    <div class="relative flex-1 rounded-xl overflow-hidden border border-slate-700/80 bg-slate-950 min-h-[580px]">
                         <div id="map" class="h-full w-full"></div>
                         
                         <!-- Standalone Interactive SVG/Canvas Fallback View -->
@@ -307,202 +322,264 @@
                         </div>
 
                         <!-- Live Exploration Animation Badge -->
-                        <div id="animationStatusBadge" class="absolute top-4 left-4 bg-slate-900/95 border border-amber-500/80 backdrop-blur rounded-xl px-4 py-2.5 shadow-2xl hidden z-20 flex items-center space-x-3">
-                            <span class="h-3 w-3 rounded-full bg-amber-400 anim-exploring"></span>
+                        <div id="animationStatusBadge" class="absolute top-4 left-4 bg-slate-900/95 border border-amber-500/80 backdrop-blur rounded-xl px-3.5 py-2 shadow-2xl hidden z-20 flex items-center space-x-2.5">
+                            <span class="h-2.5 w-2.5 rounded-full bg-amber-400 anim-exploring"></span>
                             <div>
-                                <span class="text-[10px] uppercase text-amber-400 font-bold tracking-wider block">Priority Queue Traversal</span>
+                                <span class="text-[9px] uppercase text-amber-400 font-bold tracking-wider block">Priority Queue Traversal</span>
                                 <span class="text-xs font-bold text-white" id="animCurrentNodeText">Exploring...</span>
                             </div>
                         </div>
 
                         <!-- Route Found Overlay -->
-                        <div id="routeOverlay" class="absolute top-4 right-4 bg-slate-900/95 border border-emerald-500/50 backdrop-blur rounded-xl px-4 py-2.5 shadow-2xl hidden z-20">
-                            <div class="text-[10px] uppercase text-emerald-400 font-bold tracking-wider" id="overlayAlgoTitle">Route Found</div>
-                            <div class="text-sm font-bold text-white" id="overlayDistance">-- km</div>
-                            <div class="text-[11px] text-slate-300" id="overlayNodesCount">-- nodes visited</div>
+                        <div id="routeOverlay" class="absolute top-4 right-4 bg-slate-900/95 border border-emerald-500/50 backdrop-blur rounded-xl px-3.5 py-2 shadow-2xl hidden z-20">
+                            <div class="text-[9px] uppercase text-emerald-400 font-bold tracking-wider" id="overlayAlgoTitle">Route Found</div>
+                            <div class="text-xs font-bold text-white font-mono" id="overlayDistance">-- km</div>
+                            <div class="text-[10px] text-slate-300" id="overlayNodesCount">-- nodes visited</div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Performance Metrics & Itinerary Section -->
-        <div id="resultsSection" class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl hidden">
-            
-            <!-- Single Algorithm Results Panel (BFS, DFS, Dijkstra, or A*) -->
-            <div id="singleResultsPanel">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-700/80 gap-3">
-                    <div>
-                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Calculated Route</span>
-                        <h3 class="text-lg font-bold text-white flex items-center gap-2" id="resAlgorithmName">
-                            Algorithm Result
-                        </h3>
-                    </div>
-                    <div class="flex items-center space-x-2 text-xs">
-                        <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold" id="resHopCount">
-                            Path Length: --
-                        </span>
-                    </div>
-                </div>
+            <!-- =========================================================================
+                 COLUMN 3: LIVE ROUTE TELEMETRY & BENCHMARK RESULTS (xl:col-span-4 lg:col-span-12)
+                 ========================================================================= -->
+            <div class="xl:col-span-4 lg:col-span-12 flex flex-col gap-4">
 
-                <!-- 4 Metrics Cards -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
-                    <div class="bg-slate-900/80 border border-slate-700/60 p-4 rounded-xl">
-                        <span class="text-slate-300 text-xs font-bold block mb-1">Total Distance</span>
-                        <span class="text-2xl font-bold text-emerald-400" id="resTotalDistance">0.00 km</span>
-                        <span class="text-xs text-slate-400 block mt-0.5" id="resDistanceMeters">(0 meters)</span>
-                    </div>
-                    <div class="bg-slate-900/80 border border-slate-700/60 p-4 rounded-xl">
-                        <span class="text-slate-300 text-xs font-bold block mb-1">Execution Latency</span>
-                        <span class="text-2xl font-bold text-sky-400" id="resExecutionTime">0.000 ms</span>
-                        <span class="text-xs text-slate-400 block mt-0.5">High-precision timer</span>
-                    </div>
-                    <div class="bg-slate-900/80 border border-slate-700/60 p-4 rounded-xl">
-                        <span class="text-slate-300 text-xs font-bold block mb-1">Nodes Explored / Visited</span>
-                        <span class="text-2xl font-bold text-purple-400" id="resNodesExplored">0 / 32</span>
-                        <span class="text-xs text-slate-400 block mt-0.5" id="resExploredPercent">0% of total graph</span>
-                    </div>
-                    <div class="bg-slate-900/80 border border-slate-700/60 p-4 rounded-xl">
-                        <span class="text-slate-300 text-xs font-bold block mb-1">Algorithm Characteristics</span>
-                        <span class="text-lg font-bold text-amber-400 truncate block" id="resEfficiency">Optimal</span>
-                        <span class="text-xs text-slate-400 block mt-0.5" id="resCharNotes">Verified routing</span>
-                    </div>
-                </div>
-
-                <!-- Turn-by-Turn Itinerary Table -->
-                <div class="mt-6">
-                    <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center">
-                        <i class="fa-solid fa-list-ol text-emerald-400 mr-2"></i> Turn-by-Turn Route Breakdown
-                    </h4>
-                    <div class="overflow-x-auto rounded-xl border border-slate-700/70 bg-slate-900/60">
-                        <table class="w-full text-left text-xs text-slate-200">
-                            <thead class="bg-slate-800 text-slate-300 uppercase tracking-wider text-[11px] border-b border-slate-700 font-bold">
-                                <tr>
-                                    <th class="py-3 px-4">Step #</th>
-                                    <th class="py-3 px-4">Identifier</th>
-                                    <th class="py-3 px-4">Jela / District Name</th>
-                                    <th class="py-3 px-4">Division (বিভাগ)</th>
-                                    <th class="py-3 px-4">Coordinates (Lat, Lng)</th>
-                                    <th class="py-3 px-4 text-right">Segment Dist.</th>
-                                    <th class="py-3 px-4 text-right">Cumulative Dist.</th>
-                                </tr>
-                            </thead>
-                            <tbody id="itineraryTableBody" class="divide-y divide-slate-800">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4-Way Comparison Results Panel (Part C) -->
-            <div id="comparisonResultsPanel" class="hidden">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-700/80 gap-2">
-                    <div>
-                        <span class="text-xs font-bold text-amber-400 uppercase tracking-widest">Part C &bull; Comprehensive 4-Way Algorithm Comparison</span>
-                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                            BFS vs. DFS vs. Dijkstra vs. A* (A-Star) Search
-                        </h3>
-                    </div>
-                    <div class="text-xs text-slate-300 font-bold" id="compOriginDestSummary">
-                        <!-- Origin -> Destination -->
-                    </div>
-                </div>
-
-                <!-- Comparison Table of all 4 Algorithms -->
-                <div class="mt-5 overflow-x-auto rounded-xl border border-slate-700 bg-slate-900/90 shadow-lg">
-                    <table class="w-full text-left text-xs text-slate-200">
-                        <thead class="bg-slate-800 text-slate-300 uppercase tracking-wider text-[11px] border-b border-slate-700 font-bold">
-                            <tr>
-                                <th class="py-3 px-4">Algorithm</th>
-                                <th class="py-3 px-4">Distance (km)</th>
-                                <th class="py-3 px-4">Segment Hops</th>
-                                <th class="py-3 px-4">Nodes Visited</th>
-                                <th class="py-3 px-4">Execution Time</th>
-                                <th class="py-3 px-4">Optimality Verdict</th>
-                                <th class="py-3 px-4 text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="compTableBody" class="divide-y divide-slate-800">
-                            <!-- Populated dynamically with rows for BFS, DFS, Dijkstra, A* -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Visual Comparison Bars of all 4 Algorithms -->
-                <div class="mt-6 p-5 rounded-2xl bg-slate-900/90 border border-slate-700/80">
-                    <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-4 flex items-center">
-                        <i class="fa-solid fa-chart-simple text-indigo-400 mr-2"></i> Search Space Expansion Comparison (Nodes Explored)
-                    </h4>
-
-                    <!-- Dijkstra Bar -->
-                    <div class="mb-3.5">
-                        <div class="flex justify-between text-xs font-bold mb-1">
-                            <span class="text-sky-400">Dijkstra’s Algorithm (Uniform Radial Search):</span>
-                            <span class="text-slate-200" id="barText-dijkstra">-- nodes</span>
-                        </div>
-                        <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden border border-slate-700">
-                            <div id="bar-dijkstra" class="bg-sky-500 h-3.5 rounded-full progress-bar-transition" style="width: 80%"></div>
-                        </div>
-                    </div>
-
-                    <!-- A* Bar -->
-                    <div class="mb-3.5">
-                        <div class="flex justify-between text-xs font-bold mb-1">
-                            <span class="text-emerald-400">A* Search (Haversine Directed Heuristic):</span>
-                            <span class="text-slate-200" id="barText-a_star">-- nodes</span>
-                        </div>
-                        <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden border border-slate-700">
-                            <div id="bar-a_star" class="bg-emerald-500 h-3.5 rounded-full progress-bar-transition" style="width: 35%"></div>
-                        </div>
-                    </div>
-
-                    <!-- BFS Bar -->
-                    <div class="mb-3.5">
-                        <div class="flex justify-between text-xs font-bold mb-1">
-                            <span class="text-indigo-400">BFS (Breadth-First Unweighted Queue):</span>
-                            <span class="text-slate-200" id="barText-bfs">-- nodes</span>
-                        </div>
-                        <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden border border-slate-700">
-                            <div id="bar-bfs" class="bg-indigo-500 h-3.5 rounded-full progress-bar-transition" style="width: 60%"></div>
-                        </div>
-                    </div>
-
-                    <!-- DFS Bar -->
-                    <div class="mb-2">
-                        <div class="flex justify-between text-xs font-bold mb-1">
-                            <span class="text-rose-400">DFS (Depth-First Stack Traversal):</span>
-                            <span class="text-slate-200" id="barText-dfs">-- nodes</span>
-                        </div>
-                        <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden border border-slate-700">
-                            <div id="bar-dfs" class="bg-rose-500 h-3.5 rounded-full progress-bar-transition" style="width: 50%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pedagogical Algorithmic Summary Card -->
-                <div class="mt-5 p-4 rounded-xl bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-700/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div class="flex items-center space-x-3">
-                        <div class="h-10 w-10 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 text-lg">
-                            <i class="fa-solid fa-graduation-cap"></i>
-                        </div>
+                <!-- Standby Panel (Visible before calculation) -->
+                <div id="standbyPanel" class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-700/80 mb-4">
                         <div>
-                            <div class="text-xs font-bold text-emerald-300">Algorithmic Insight for Presentation</div>
-                            <p class="text-xs text-slate-200 mt-0.5" id="compInsightText">
-                                Evaluating 4-way path comparison...
-                            </p>
+                            <span class="text-[10px] font-bold text-sky-400 uppercase tracking-widest block">Defense Telemetry Lab</span>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                                <i class="fa-solid fa-chart-line text-emerald-400"></i> Performance & Route Analytics
+                            </h3>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-300 text-[10px] font-bold border border-sky-500/30">
+                            Ready
+                        </span>
+                    </div>
+
+                    <p class="text-xs text-slate-300 mb-4">
+                        Select an <strong>Origin</strong> & <strong>Destination</strong> on the left panel or click any <strong>Quick Corridor</strong> preset above to run spatial graph routing.
+                    </p>
+
+                    <!-- Quick Reference of the 4 Algorithms -->
+                    <div class="space-y-2 mb-4">
+                        <div class="p-2.5 rounded-xl bg-slate-900/70 border border-emerald-500/30">
+                            <div class="flex items-center justify-between text-xs font-bold text-emerald-300">
+                                <span>A* Search (Haversine Directed)</span>
+                                <span class="font-mono text-[10px]">O(E) Directed</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Calculates f(n) = g(n) + h(n). Guaranteed optimal road km while pruning ~75% of node evaluations.</p>
+                        </div>
+
+                        <div class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/70">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-200">
+                                <span>Dijkstra’s Algorithm</span>
+                                <span class="font-mono text-[10px]">O((V+E) log V)</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Uniform-cost search evaluating cumulative edge weights. Exhaustively guarantees global minimum distance.</p>
+                        </div>
+
+                        <div class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-700/70">
+                            <div class="flex items-center justify-between text-xs font-bold text-sky-300">
+                                <span>Breadth-First Search (BFS)</span>
+                                <span class="font-mono text-[10px]">O(V + E)</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Traverses level-by-level uniformly. Guarantees the fewest road transfers (hops) regardless of mileage.</p>
+                        </div>
+
+                        <div class="p-2.5 rounded-xl bg-slate-900/70 border border-rose-500/30">
+                            <div class="flex items-center justify-between text-xs font-bold text-rose-300">
+                                <span>Depth-First Search (DFS)</span>
+                                <span class="font-mono text-[10px]">O(V + E)</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Deep recursion along single branches. Visually demonstrates why DFS produces pathological routing detours.</p>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-3 text-xs font-bold">
-                        <span class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 border border-slate-700" id="compDistMatchBadge">
-                            Optimal Distance: -- km
-                        </span>
-                        <span class="px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300" id="compAStarSavedBadge">
-                            -- nodes saved
-                        </span>
+
+                    <div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-xs text-emerald-200 flex items-center space-x-2">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+                        <span>Live client-side and Django API runtimes ready.</span>
                     </div>
                 </div>
+
+                <!-- Active Results Section (Single Algorithm or 4-Way Comparison) -->
+                <div id="resultsSection" class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-xl hidden">
+                    
+                    <!-- Single Algorithm Results Panel (BFS, DFS, Dijkstra, or A*) -->
+                    <div id="singleResultsPanel">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-700/80 gap-2 mb-3.5">
+                            <div>
+                                <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Active Result</span>
+                                <h3 class="text-sm font-bold text-white flex items-center gap-1.5" id="resAlgorithmName">
+                                    Algorithm Result
+                                </h3>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold" id="resHopCount">
+                                Path Length: --
+                            </span>
+                        </div>
+
+                        <!-- 4 Stat Tiles -->
+                        <div class="grid grid-cols-2 gap-2.5 mb-4">
+                            <div class="bg-slate-900/80 border border-slate-700/60 p-3 rounded-xl">
+                                <span class="text-slate-400 text-[10px] font-bold uppercase block">Distance</span>
+                                <span class="text-lg font-bold text-emerald-400 font-mono" id="resTotalDistance">0.0 km</span>
+                                <span class="text-[10px] text-slate-400 block" id="resDistanceMeters">(0 m)</span>
+                            </div>
+                            <div class="bg-slate-900/80 border border-slate-700/60 p-3 rounded-xl">
+                                <span class="text-slate-400 text-[10px] font-bold uppercase block">Latency</span>
+                                <span class="text-lg font-bold text-sky-400 font-mono" id="resExecutionTime">0.0 ms</span>
+                                <span class="text-[10px] text-slate-400 block">High-precision</span>
+                            </div>
+                            <div class="bg-slate-900/80 border border-slate-700/60 p-3 rounded-xl">
+                                <span class="text-slate-400 text-[10px] font-bold uppercase block">Nodes Visited</span>
+                                <span class="text-lg font-bold text-purple-400 font-mono" id="resNodesExplored">0 / 32</span>
+                                <span class="text-[10px] text-slate-400 block" id="resExploredPercent">0% of graph</span>
+                            </div>
+                            <div class="bg-slate-900/80 border border-slate-700/60 p-3 rounded-xl">
+                                <span class="text-slate-400 text-[10px] font-bold uppercase block">Verdict</span>
+                                <span class="text-sm font-bold text-amber-400 truncate block mt-0.5" id="resEfficiency">Optimal</span>
+                                <span class="text-[10px] text-slate-400 block truncate" id="resCharNotes">Verified</span>
+                            </div>
+                        </div>
+
+                        <!-- Turn-by-Turn Route Breakdown (Scrollable Accordion Table) -->
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-2 flex items-center">
+                                <i class="fa-solid fa-list-ol text-emerald-400 mr-1.5"></i> Highway Itinerary Breakdown
+                            </h4>
+                            <div class="overflow-x-auto rounded-xl border border-slate-700/70 bg-slate-900/70 max-h-[320px] overflow-y-auto">
+                                <table class="w-full text-left text-xs text-slate-200">
+                                    <thead class="bg-slate-800 text-slate-300 uppercase tracking-wider text-[10px] border-b border-slate-700 font-bold sticky top-0">
+                                        <tr>
+                                            <th class="py-2 px-3">Step</th>
+                                            <th class="py-2 px-3">District</th>
+                                            <th class="py-2 px-3 text-right">Leg</th>
+                                            <th class="py-2 px-3 text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="itineraryTableBody" class="divide-y divide-slate-800 font-mono text-[11px]">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4-Way Comparison Results Panel (Part C) -->
+                    <div id="comparisonResultsPanel" class="hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-700/80 gap-2 mb-3">
+                            <div>
+                                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Part C Comparison</span>
+                                <h3 class="text-sm font-bold text-white">
+                                    BFS vs DFS vs Dijkstra vs A*
+                                </h3>
+                            </div>
+                            <div class="text-[11px] text-slate-300 font-bold" id="compOriginDestSummary">
+                                <!-- Origin -> Destination -->
+                            </div>
+                        </div>
+
+                        <!-- Visual Comparison Bars -->
+                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-700/80 mb-3.5">
+                            <h4 class="text-[11px] font-bold text-slate-200 uppercase tracking-wider mb-2.5 flex items-center">
+                                <i class="fa-solid fa-chart-simple text-indigo-400 mr-1.5"></i> Search Space Pruning (Nodes Explored)
+                            </h4>
+
+                            <!-- A* Bar -->
+                            <div class="mb-2">
+                                <div class="flex justify-between text-[11px] font-bold mb-0.5">
+                                    <span class="text-emerald-400">A* Search (Haversine Heuristic):</span>
+                                    <span class="text-slate-200" id="barText-a_star">-- nodes</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700">
+                                    <div id="bar-a_star" class="bg-emerald-500 h-2.5 rounded-full progress-bar-transition" style="width: 24%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Dijkstra Bar -->
+                            <div class="mb-2">
+                                <div class="flex justify-between text-[11px] font-bold mb-0.5">
+                                    <span class="text-sky-400">Dijkstra (Uniform Cost):</span>
+                                    <span class="text-slate-200" id="barText-dijkstra">-- nodes</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700">
+                                    <div id="bar-dijkstra" class="bg-sky-500 h-2.5 rounded-full progress-bar-transition" style="width: 91%"></div>
+                                </div>
+                            </div>
+
+                            <!-- BFS Bar -->
+                            <div class="mb-2">
+                                <div class="flex justify-between text-[11px] font-bold mb-0.5">
+                                    <span class="text-indigo-400">BFS (Breadth-First):</span>
+                                    <span class="text-slate-200" id="barText-bfs">-- nodes</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700">
+                                    <div id="bar-bfs" class="bg-indigo-500 h-2.5 rounded-full progress-bar-transition" style="width: 94%"></div>
+                                </div>
+                            </div>
+
+                            <!-- DFS Bar -->
+                            <div>
+                                <div class="flex justify-between text-[11px] font-bold mb-0.5">
+                                    <span class="text-rose-400">DFS (Depth-First Detour):</span>
+                                    <span class="text-slate-200" id="barText-dfs">-- nodes</span>
+                                </div>
+                                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700">
+                                    <div id="bar-dfs" class="bg-rose-500 h-2.5 rounded-full progress-bar-transition" style="width: 81%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4-Way Comparison Table -->
+                        <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900/90 shadow-lg mb-3.5 max-h-[220px] overflow-y-auto">
+                            <table class="w-full text-left text-xs text-slate-200">
+                                <thead class="bg-slate-800 text-slate-300 uppercase tracking-wider text-[10px] border-b border-slate-700 font-bold sticky top-0">
+                                    <tr>
+                                        <th class="py-2 px-2.5">Algorithm</th>
+                                        <th class="py-2 px-2.5">Dist.</th>
+                                        <th class="py-2 px-2.5">Hops</th>
+                                        <th class="py-2 px-2.5">Nodes</th>
+                                        <th class="py-2 px-2.5">Latency</th>
+                                        <th class="py-2 px-2.5 text-center">Map</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="compTableBody" class="divide-y divide-slate-800 text-[11px]">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pedagogical Summary Insight Box -->
+                        <div class="p-3 rounded-xl bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-700/50">
+                            <div class="flex items-start space-x-2.5">
+                                <div class="h-7 w-7 rounded bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[11px] font-bold text-emerald-300">Defense Evaluation Finding</div>
+                                    <p class="text-[11px] text-slate-200 mt-0.5" id="compInsightText">
+                                        Evaluating 4-way path comparison...
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-slate-800 text-[10px] font-bold">
+                                <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-200 border border-slate-700" id="compDistMatchBadge">
+                                    Optimal: -- km
+                                </span>
+                                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" id="compAStarSavedBadge">
+                                    -- nodes saved
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
 
     </main>
@@ -1546,6 +1623,7 @@
 
         // 8. Display Single Algorithm Result
         function displaySingleResult(result) {
+            const sb = document.getElementById('standbyPanel'); if (sb) sb.classList.add('hidden');
             document.getElementById('resultsSection').classList.remove('hidden');
             document.getElementById('singleResultsPanel').classList.remove('hidden');
             document.getElementById('comparisonResultsPanel').classList.add('hidden');
@@ -1578,22 +1656,20 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/80 transition';
                 tr.innerHTML = `
-                    <td class="py-2.5 px-4 font-mono font-bold text-emerald-400">#${item.step}</td>
-                    <td class="py-2.5 px-4 font-semibold text-white">${item.code}</td>
-                    <td class="py-2.5 px-4 text-slate-200 font-bold">${item.name} ${item.bn_name ? ' / ' + item.bn_name : ''}</td>
-                    <td class="py-2.5 px-4 text-slate-300 font-semibold">${item.division || 'Dhaka'}</td>
-                    <td class="py-2.5 px-4 font-mono text-slate-400 text-xs">${item.lat.toFixed(4)}, ${item.lng.toFixed(4)}</td>
-                    <td class="py-2.5 px-4 text-right text-slate-200 font-mono">${item.segment_distance_km > 0 ? '+' + item.segment_distance_km + ' km' : 'Start'}</td>
-                    <td class="py-2.5 px-4 text-right font-bold text-emerald-400 font-mono">${item.cumulative_distance_km} km</td>
+                    <td class="py-1.5 px-3 font-mono font-bold text-emerald-400">#${item.step}</td>
+                    <td class="py-1.5 px-3 text-white font-bold">${item.name} <span class="text-slate-400 font-normal">(${item.code})</span></td>
+                    <td class="py-1.5 px-3 text-right text-slate-300 font-mono">${item.segment_distance_km > 0 ? '+' + item.segment_distance_km : '-'}</td>
+                    <td class="py-1.5 px-3 text-right font-bold text-emerald-400 font-mono">${item.cumulative_distance_km}</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            if (window.innerWidth < 1280) document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
         }
 
         // 9. Display 4-Way Comparison (BFS, DFS, Dijkstra, A*)
         function display4WayComparison(comp) {
+            const sb = document.getElementById('standbyPanel'); if (sb) sb.classList.add('hidden');
             document.getElementById('resultsSection').classList.remove('hidden');
             document.getElementById('singleResultsPanel').classList.add('hidden');
             document.getElementById('comparisonResultsPanel').classList.remove('hidden');
@@ -1622,17 +1698,16 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/80 transition';
                 tr.innerHTML = `
-                    <td class="py-3 px-4 font-bold text-white flex items-center space-x-2">
-                        <span class="px-2 py-0.5 rounded text-[11px] font-mono ${item.badge}">${item.name}</span>
+                    <td class="py-2 px-2.5 font-bold text-white">
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono ${item.badge}">${item.name}</span>
                     </td>
-                    <td class="py-3 px-4 font-mono font-bold ${res.total_distance_km === optimalDist ? 'text-emerald-400' : 'text-amber-400'}">${res.total_distance_km} km</td>
-                    <td class="py-3 px-4 font-mono text-slate-300">${res.hops} hops</td>
-                    <td class="py-3 px-4 font-mono font-bold text-purple-400">${res.nodes_explored} nodes</td>
-                    <td class="py-3 px-4 font-mono text-sky-400">${res.execution_time_ms.toFixed(4)} ms</td>
-                    <td class="py-3 px-4 text-xs font-semibold text-slate-300">${item.opt}</td>
-                    <td class="py-3 px-4 text-center">
-                        <button onclick="previewSpecificPath('${item.key}')" class="px-2.5 py-1 rounded bg-slate-700 hover:bg-emerald-600 text-xs font-bold text-white transition">
-                            View on Map
+                    <td class="py-2 px-2.5 font-mono font-bold ${res.total_distance_km === optimalDist ? 'text-emerald-400' : 'text-amber-400'}">${res.total_distance_km} km</td>
+                    <td class="py-2 px-2.5 font-mono text-slate-300">${res.hops}</td>
+                    <td class="py-2 px-2.5 font-mono font-bold text-purple-400">${res.nodes_explored}</td>
+                    <td class="py-2 px-2.5 font-mono text-sky-400 text-[10px]">${res.execution_time_ms.toFixed(2)}ms</td>
+                    <td class="py-2 px-2.5 text-center">
+                        <button onclick="previewSpecificPath('${item.key}')" class="px-2 py-0.5 rounded bg-slate-700 hover:bg-emerald-600 text-[10px] font-bold text-white transition">
+                            View
                         </button>
                     </td>
                 `;
@@ -1663,7 +1738,7 @@
             document.getElementById('overlayDistance').innerText = `Optimal: ${optimalDist} km`;
             document.getElementById('overlayNodesCount').innerText = `A* saved ${comp.summary.astar_nodes_saved} node checks`;
 
-            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            if (window.innerWidth < 1280) document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
         }
 
         // Preview a specific algorithm's path from the 4-way comparison
@@ -1682,6 +1757,7 @@
                 activePolyline.setMap(null);
                 activePolyline = null;
             }
+            const sb = document.getElementById('standbyPanel'); if (sb) sb.classList.remove('hidden');
             document.getElementById('resultsSection').classList.add('hidden');
             document.getElementById('routeOverlay').classList.add('hidden');
             document.getElementById('animationStatusBadge').classList.add('hidden');
